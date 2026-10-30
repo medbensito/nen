@@ -111,6 +111,50 @@ export const BENCHMARKS: readonly Benchmark[] = [
     },
   },
   {
+    name: 'sim.step, 20 orbs shooting 50 targets',
+    budgetMs: 2,
+    setup: () => {
+      const data = fixtureGameData();
+      const sim = createSimulation({
+        data,
+        seed: 1,
+        setup: (state) => {
+          for (let i = 0; i < 50; i++) {
+            spawnEntity(state, {
+              kind: 'unit',
+              defId: 'target',
+              team: 'red',
+              position: { x: 400 + (i % 10) * 30, y: 40 + Math.floor(i / 10) * 30 },
+              radius: 10,
+              health: { current: 1e9, max: 1e9 },
+            });
+          }
+          for (let i = 0; i < 20; i++) {
+            spawnEntity(state, {
+              kind: 'summon',
+              defId: 'orb',
+              team: 'blue',
+              position: { x: 300, y: 40 + i * 20 },
+              radius: 12,
+              turret: {
+                casterId: 0,
+                untilTick: 1e9,
+                intervalTicks: 3,
+                nextShotTick: i % 3,
+                acquisitionRange: 400,
+                shotDamage: 1,
+                shotSpeed: 30,
+                shotRadius: 5,
+                refund: 0,
+              },
+            });
+          }
+        },
+      });
+      return () => sim.step();
+    },
+  },
+  {
     name: 'findPath across a lane-sized map (200 × 60 cells)',
     budgetMs: 2,
     setup: () => {
