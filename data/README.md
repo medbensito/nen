@@ -6,10 +6,10 @@ Tout le contenu équilibrable du jeu vit ici, en JSON. Changer une valeur dans c
 |---|---|
 | `champions/` | Un fichier par champion : statistiques, gains par niveau, spécialisation, capacités |
 | `abilities/` | Définition des capacités : effets, coûts, temps de recharge, portées |
-| `units/` | Sbires, tours, bases |
+| `units/` | Unités autres que les champions : mannequin d'entraînement (M2), puis sbires, tours, bases |
 | `items/` | Objets de la boutique |
-| `maps/` | Cartes : lane, bases, fontaines, obstacles, positions des tours |
-| `rules/` | Règles globales : `simulation.json` (fréquence), `match.json` (carte, champion et camp du joueur) ; plus tard Nen, combat, économie, vagues |
+| `maps/` | Cartes : obstacles, bases et fontaines, unités placées dès le départ (mannequin, plus tard tours) |
+| `rules/` | Règles globales : `simulation.json` (fréquence), `match.json` (carte, champion et camp du joueur), `combat.json` (échelle d'armure, délai de réapparition) ; plus tard Nen, économie, vagues |
 | `input/` | `bindings.json` : raccourcis (par position physique de touche) ; `camera.json` : verrouillage au départ, défilement, zoom |
 | `locales/` | Tous les textes affichés, par langue (`fr.json`, `en.json`) |
 
