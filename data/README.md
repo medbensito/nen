@@ -9,8 +9,8 @@ Tout le contenu équilibrable du jeu vit ici, en JSON. Changer une valeur dans c
 | `units/` | Sbires, tours, bases |
 | `items/` | Objets de la boutique |
 | `maps/` | Cartes : lane, bases, fontaines, obstacles, positions des tours |
-| `rules/` | Règles globales : Nen, combat, économie, vagues, fréquence de simulation |
-| `input/` | Raccourcis clavier et souris (par position physique de touche) |
+| `rules/` | Règles globales : `simulation.json` (fréquence), `match.json` (carte, champion et camp du joueur) ; plus tard Nen, combat, économie, vagues |
+| `input/` | `bindings.json` : raccourcis (par position physique de touche) ; `camera.json` : verrouillage au départ, défilement, zoom |
 | `locales/` | Tous les textes affichés, par langue (`fr.json`, `en.json`) |
 
 ## Équilibrer

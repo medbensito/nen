@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createGameState, findEntity, removeEntity, spawnEntity } from './game-state';
 
-const dummy = { kind: 'dummy', team: 'neutral', position: { x: 0, y: 0 } } as const;
+const dummy = { kind: 'dummy', team: 'neutral', position: { x: 0, y: 0 }, radius: 10 } as const;
 
 describe('game state', () => {
   it('assigns growing ids and keeps entities sorted by id', () => {
@@ -33,6 +33,14 @@ describe('game state', () => {
     expect(removeEntity(state, 7)).toBe(false);
     expect(findEntity(state, 8)?.id).toBe(8);
     expect(spawnEntity(state, dummy).id).toBe(11);
+  });
+
+  it('does not share the movement path passed at spawn', () => {
+    const state = createGameState(1);
+    const path = [{ x: 1, y: 1 }];
+    const entity = spawnEntity(state, { ...dummy, movement: { speed: 1, path } });
+    path.push({ x: 2, y: 2 });
+    expect(entity.movement?.path).toEqual([{ x: 1, y: 1 }]);
   });
 
   it('is plain JSON data', () => {

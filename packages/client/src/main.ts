@@ -3,6 +3,7 @@ import * as Phaser from 'phaser';
 import { installDebugHook } from './debug';
 import { loadBundledGameData } from './game-data';
 import { createTranslator, pickLanguage } from './i18n';
+import type { CameraStatus } from './render/camera-rig';
 import { ArenaScene } from './scenes/arena-scene';
 import { HudScene } from './scenes/hud-scene';
 import { THEME } from './theme';
@@ -23,14 +24,15 @@ function boot(): void {
 
   // The client may use real randomness: the seed is the only thing it injects.
   const sim = createSimulation({ data, seed: Math.floor(Math.random() * 2 ** 32) });
-  if (import.meta.env.DEV) installDebugHook(sim);
+  const cameraStatus: CameraStatus = { locked: data.input.camera.startLocked };
+  if (import.meta.env.DEV) installDebugHook(sim, cameraStatus);
 
   new Phaser.Game({
     type: Phaser.WEBGL,
     parent: 'game',
     backgroundColor: THEME.void,
     scale: { mode: Phaser.Scale.RESIZE, width: '100%', height: '100%' },
-    scene: [new ArenaScene({ sim, map }), new HudScene({ t })],
+    scene: [new ArenaScene({ sim, map, cameraStatus }), new HudScene({ t, cameraStatus })],
   });
 }
 

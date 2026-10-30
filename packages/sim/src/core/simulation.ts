@@ -1,6 +1,8 @@
 import type { Command } from '../commands/command';
+import { createNavIndex, type NavIndex } from '../nav/nav-index';
 import type { GameData } from '../schema/loader';
 import { createGameState, type GameState } from '../state/game-state';
+import { setupMatch } from '../state/setup-match';
 import { DEFAULT_SYSTEMS } from '../systems';
 import { createRng, type Rng } from './rng';
 import type { DeepReadonly } from './types';
@@ -9,6 +11,8 @@ export interface TickContext {
   readonly tick: number;
   readonly data: GameData;
   readonly rng: Rng;
+  /** Navigation grids of the match map. Static: derived from data, not from state. */
+  readonly nav: NavIndex;
   /** Commands queued since the previous tick, in the order they were queued. */
   readonly commands: readonly Command[];
 }
@@ -21,10 +25,13 @@ export interface SimulationOptions {
   readonly seed: number;
   /** Defaults to the game's systems; tests pass their own. */
   readonly systems?: readonly System[];
+  /** Builds the initial state; defaults to the match setup from the data. */
+  readonly setup?: (state: GameState, data: GameData) => void;
 }
 
 export interface Simulation {
   readonly data: GameData;
+  readonly nav: NavIndex;
   /** Read-only view for rendering and tests. Only systems mutate the state, inside step(). */
   readonly state: DeepReadonly<GameState>;
   /** Queues a command, applied by the next step(). */
@@ -35,13 +42,19 @@ export interface Simulation {
 
 export function createSimulation(options: SimulationOptions): Simulation {
   const { data } = options;
+  const map = data.maps[data.match.map];
+  if (!map) throw new Error(`Unknown match map "${data.match.map}"`);
+
+  const nav = createNavIndex(map);
   const systems = [...(options.systems ?? DEFAULT_SYSTEMS)];
   const state = createGameState(options.seed);
+  (options.setup ?? setupMatch)(state, data);
   const rng = createRng(state.rng);
   let queue: Command[] = [];
 
   return {
     data,
+    nav,
     state,
     enqueue(command) {
       queue.push(command);
@@ -49,7 +62,7 @@ export function createSimulation(options: SimulationOptions): Simulation {
     step() {
       const commands = queue;
       queue = [];
-      const ctx: TickContext = { tick: state.tick, data, rng, commands };
+      const ctx: TickContext = { tick: state.tick, data, rng, nav, commands };
       for (const system of systems) system(state, ctx);
       state.tick += 1;
     },

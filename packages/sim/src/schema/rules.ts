@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { idSchema } from './common';
+import { idSchema, teamSchema } from './common';
 
 /** data/rules/simulation.json */
 export const simulationRulesSchema = z.strictObject({
@@ -19,6 +19,10 @@ export type SimulationRules = z.infer<typeof simulationRulesSchema>;
 export const matchRulesSchema = z.strictObject({
   /** Id of the map to play, from data/maps/. */
   map: idSchema,
+  /** Id of the champion the player controls, from data/champions/. */
+  champion: idSchema,
+  /** Team of the player. */
+  team: teamSchema,
 });
 
 export type MatchRules = z.infer<typeof matchRulesSchema>;

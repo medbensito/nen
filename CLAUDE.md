@@ -39,7 +39,7 @@ Si une commande change, mets à jour cette section dans le même commit.
 | `pnpm test` | Lance tous les tests une fois |
 | `pnpm test <filtre>` | Lance seulement les fichiers de test dont le chemin contient `<filtre>` (ex. `pnpm test loader`) |
 | `pnpm test:watch` | Tests en mode surveillance |
-| `pnpm test:e2e` | Tests de fumée Playwright sur le port 5174 : la page charge sans erreur console, la sim tient sa fréquence. Hors `pnpm check`. |
+| `pnpm test:e2e` | Tests Playwright sur le port 5174 : chargement sans erreur console, fréquence de la sim, clic droit et touches, budget du thread principal par frame. Hors `pnpm check`. |
 | `pnpm typecheck` | Vérification des types (sim, client, e2e, tools) |
 | `pnpm lint` | ESLint, y compris les règles d'isolation de `sim`, puis vérification Prettier |
 | `pnpm format` | Reformate le code et les JSON avec Prettier (les `.md` sont exclus) |
@@ -66,7 +66,7 @@ nen/
 │   ├── items/
 │   ├── maps/
 │   ├── rules/                Nen, économie, partie, fréquence de simulation
-│   ├── input/                raccourcis clavier et souris
+│   ├── input/                raccourcis clavier et souris, réglages de caméra
 │   └── locales/              tous les textes affichés (fr, en)
 ├── packages/
 │   ├── sim/                  @nen/sim : règles du jeu, TypeScript pur
@@ -146,7 +146,7 @@ Le chargeur convertit les secondes en ticks ; le code de la sim ne manipule que 
 
 1. **Un jalon à la fois**, dans l'ordre de `docs/ROADMAP.md`. Ne commence jamais le jalon suivant sans validation explicite du porteur du projet.
 2. **Avant de coder un jalon**, pose les questions bloquantes. Pour le reste, fais un choix raisonnable et signale-le (« Choix signalé : … ») dans le rapport et dans la PR.
-3. **Branches** : `m<N>-<slug>` créée depuis `main` (ex. `m1-movement-camera`). PR vers `main` en fin de jalon. Après validation : merge, tag `m<N>`, statut mis à jour dans `docs/ROADMAP.md`.
+3. **Branches** : `m<N>-<slug>` créée depuis `main` (ex. `m1-movement-camera`). PR vers `main` en fin de jalon. Après validation : merge, tag `m<N>` (poussé par le porteur du projet quand l'agent n'a pas le droit de créer de tag), statut mis à jour dans `docs/ROADMAP.md`.
 4. **Rapport de fin de jalon**, toujours avec ces rubriques :
    - **Fait** : ce qui est livré.
    - **Pas fait** : ce qui manque ou est reporté, et pourquoi.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { degreesToRadians, secondsToTicks } from './units';
+import { degreesToRadians, perSecondToPerTick, secondsToTicks } from './units';
 
 describe('secondsToTicks', () => {
   it('converts seconds to the nearest whole tick', () => {
@@ -8,6 +8,13 @@ describe('secondsToTicks', () => {
     expect(secondsToTicks(0.8, 30)).toBe(24);
     expect(secondsToTicks(0.01, 30)).toBe(0);
     expect(secondsToTicks(0, 30)).toBe(0);
+  });
+});
+
+describe('perSecondToPerTick', () => {
+  it('spreads a per-second rate over the ticks of a second', () => {
+    expect(perSecondToPerTick(330, 30)).toBe(11);
+    expect(perSecondToPerTick(8, 30)).toBeCloseTo(0.2667, 4);
   });
 });
 

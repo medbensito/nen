@@ -5,4 +5,6 @@
 export const TEXT = {
   appTitle: 'app.title',
   hudFps: 'hud.fps',
+  cameraLocked: 'hud.camera.locked',
+  cameraFree: 'hud.camera.free',
 } as const;

@@ -1,0 +1,11 @@
+{
+  "startLocked": true,
+  "edgeScrollMargin": 24,
+  "edgeScrollSpeed": 1600,
+  "zoom": {
+    "initial": 1,
+    "min": 0.6,
+    "max": 1.4,
+    "step": 0.1
+  }
+}

@@ -4,7 +4,8 @@ Les chiffres de ce document sont des **valeurs de départ**. La source de vérit
 
 ## 1. Partie MVP
 
-- Une lane horizontale entre deux bases. Camp **Bleu** (joueur) à gauche, camp **Rouge** à droite.
+- Une lane horizontale entre deux bases (carte de 5 000 × 1 500 unités). Camp **Bleu** (joueur) à gauche, camp **Rouge** à droite.
+- La lane est bordée de murs ; quelques rochers obligent à contourner. Une base est une zone ouverte autour de sa fontaine.
 - Chaque camp a deux tours sur la lane et une base avec fontaine.
 - Le joueur contrôle un champion. L'équipe adverse se compose de sbires, de tours et d'une base ; il n'y a pas de champion adverse dans le MVP.
 - Victoire : détruire la base adverse. Une base est invulnérable tant qu'une tour de son camp tient.
@@ -91,16 +92,19 @@ Nom de travail, original. Émetteur à distance moyenne qui gère son Nen en vis
 
 ## 8. Contrôles (style MOBA classique)
 
-Les touches sont lues par **position physique** : sur un clavier AZERTY, A Z E R correspondent aux positions Q W E R d'un clavier QWERTY. Tous les raccourcis sont dans `data/input/`.
+Les touches sont lues par **position physique** : sur un clavier AZERTY, A Z E R correspondent aux positions Q W E R d'un clavier QWERTY. Tous les raccourcis sont dans `data/input/bindings.json`, les réglages de caméra dans `data/input/camera.json`.
+
+Un clic dans un mur envoie au point accessible le plus proche. Un clic sur une zone inatteignable est ignoré.
 
 | Action | Entrée |
 |---|---|
-| Se déplacer | Clic droit sur le sol |
+| Se déplacer | Clic droit sur le sol ; bouton maintenu, le champion suit le curseur |
 | Attaquer | Clic droit sur un ennemi (poursuite automatique) |
 | Capacités | A, Z, E, R (lancement rapide vers le curseur à l'appui) |
 | Stop | S |
-| Verrouiller / libérer la caméra | Y |
+| Verrouiller / libérer la caméra | Y (verrouillée au début de la partie) |
 | Recentrer la caméra | Espace maintenu |
 | Défiler (caméra libre) | Souris au bord de l'écran |
+| Zoomer | Molette, entre deux bornes définies dans `data/input/camera.json` |
 | Boutique (à la fontaine) | P |
 | Pause | Échap |
