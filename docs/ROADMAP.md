@@ -10,7 +10,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | Fait (tag `m1`) |
-| M2 | Combat de base | En revue |
+| M2 | Combat de base | Fait (tag `m2`) |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
 | M5 | Boucle de partie complète | À faire |
@@ -66,7 +66,7 @@ Réponses prises en compte : le mannequin riposte, pas d'attaque automatique, ch
 - [x] La cadence est respectée : N attaques en T secondes selon la vitesse d'attaque. (auto : `systems/combat.test.ts`, 1 et 2 attaques/s)
 - [x] Hors de portée, le champion poursuit puis attaque dès qu'il est à portée. (auto : `systems/combat.test.ts`)
 - [x] À 0 PV, l'unité meurt ; le champion réapparaît à la fontaine après le délai lu dans les données. (auto : `systems/respawn.test.ts`)
-- [ ] Attaquer le mannequin est lisible : barres, impacts, mort, réapparition. (manuel — vérifié en headless, `e2e/combat.spec.ts`)
+- [x] Attaquer le mannequin est lisible : barres, impacts, mort, réapparition. (manuel — validé par le porteur du projet ; couvert aussi par `e2e/combat.spec.ts`)
 
 ## M3 — Nen et capacités
 
