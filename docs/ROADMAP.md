@@ -9,7 +9,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 | Jalon | Sujet | Statut |
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
-| M1 | Déplacement et caméra | En cours |
+| M1 | Déplacement et caméra | En revue |
 | M2 | Combat de base | À faire |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
@@ -41,15 +41,15 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 - Carte décrite en données : une lane, deux bases avec fontaine, obstacles.
 - Grille de navigation dérivée de la carte, A* et lissage de chemin.
 - Clic droit sur le sol : le champion s'y déplace en contournant les obstacles. Marqueur de clic. `S` : stop.
-- Caméra : suit le champion quand elle est verrouillée (`Y` pour basculer), défilement aux bords de l'écran quand elle est libre, `Espace` maintenu pour recentrer.
+- Caméra : verrouillée sur le champion au départ (`Y` pour basculer), défilement aux bords de l'écran quand elle est libre, `Espace` maintenu pour recentrer, zoom à la molette entre deux bornes.
 - Raccourcis lus par position physique de touche, définis dans `data/input/`.
 
 **Critères d'acceptation**
-- [ ] Le chemin trouvé contourne un obstacle ; un clic dans un mur envoie au point accessible le plus proche ; une cible inaccessible ne produit pas de déplacement. (auto)
-- [ ] Modifier `moveSpeed` dans le JSON du champion change la vitesse, sans toucher au code. (auto)
-- [ ] Sur 1 000 déplacements à destination aléatoire, le champion ne traverse jamais un obstacle. (auto)
-- [ ] Changer un raccourci dans `data/input/` change la touche en jeu. (auto)
-- [ ] Déplacement fluide et 58 fps ou plus sur la machine de référence. (manuel)
+- [x] Le chemin trouvé contourne un obstacle ; un clic dans un mur envoie au point accessible le plus proche ; une cible inaccessible ne produit pas de déplacement. (auto : `nav/pathfinding.test.ts`, `systems/movement.test.ts`)
+- [x] Modifier `moveSpeed` dans le JSON du champion change la vitesse, sans toucher au code. (auto : `systems/movement.test.ts`)
+- [x] Sur 1 000 déplacements à destination aléatoire, le champion ne traverse jamais un obstacle. (auto : `test/random-moves.test.ts`)
+- [x] Changer un raccourci dans `data/input/` change la touche en jeu. (auto : `input/key-bindings.test.ts`)
+- [ ] Déplacement fluide et 58 fps ou plus sur la machine de référence. (manuel — en headless, le thread principal prend environ 2 ms par frame, vérifié par `e2e/movement.spec.ts`)
 
 ## M2 — Combat de base
 

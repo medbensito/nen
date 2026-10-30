@@ -39,7 +39,7 @@ Si une commande change, mets à jour cette section dans le même commit.
 | `pnpm test` | Lance tous les tests une fois |
 | `pnpm test <filtre>` | Lance seulement les fichiers de test dont le chemin contient `<filtre>` (ex. `pnpm test loader`) |
 | `pnpm test:watch` | Tests en mode surveillance |
-| `pnpm test:e2e` | Tests de fumée Playwright sur le port 5174 : la page charge sans erreur console, la sim tient sa fréquence. Hors `pnpm check`. |
+| `pnpm test:e2e` | Tests Playwright sur le port 5174 : chargement sans erreur console, fréquence de la sim, clic droit et touches, budget du thread principal par frame. Hors `pnpm check`. |
 | `pnpm typecheck` | Vérification des types (sim, client, e2e, tools) |
 | `pnpm lint` | ESLint, y compris les règles d'isolation de `sim`, puis vérification Prettier |
 | `pnpm format` | Reformate le code et les JSON avec Prettier (les `.md` sont exclus) |
@@ -66,7 +66,7 @@ nen/
 │   ├── items/
 │   ├── maps/
 │   ├── rules/                Nen, économie, partie, fréquence de simulation
-│   ├── input/                raccourcis clavier et souris
+│   ├── input/                raccourcis clavier et souris, réglages de caméra
 │   └── locales/              tous les textes affichés (fr, en)
 ├── packages/
 │   ├── sim/                  @nen/sim : règles du jeu, TypeScript pur
