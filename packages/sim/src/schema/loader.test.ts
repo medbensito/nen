@@ -1,20 +1,25 @@
 import { describe, expect, it } from 'vitest';
+import { fixtureFiles, type FixtureFiles } from '../../test/fixtures/game-data';
 import { DataValidationError, formatIssuePath, type DataIssue } from './errors';
 import { loadGameData, type RawDataFiles } from './loader';
 
-function validFiles(): Record<string, unknown> {
-  return {
-    'rules/simulation.json': { tickRate: 30, maxStepsPerFrame: 5 },
-    'rules/match.json': { map: 'test-arena' },
-    'maps/test-arena.json': {
-      id: 'test-arena',
-      name: 'map.test-arena.name',
-      width: 800,
-      height: 600,
-    },
-    'locales/fr.json': { 'map.test-arena.name': 'Arène de test' },
-    'locales/en.json': { 'map.test-arena.name': 'Test arena' },
-  };
+function validFiles(): FixtureFiles {
+  const files = fixtureFiles();
+  files['locales/en.json'] = { 'map.test-arena.name': 'Test arena' };
+  return files;
+}
+
+/** Valid files with one file replaced, or with fields of one file replaced. */
+function withFile(file: string, content: Record<string, unknown>): FixtureFiles {
+  const files = validFiles();
+  files[file] = content;
+  return files;
+}
+
+function withFields(file: string, fields: Record<string, unknown>): FixtureFiles {
+  const files = validFiles();
+  files[file] = { ...files[file], ...fields };
+  return files;
 }
 
 function issuesOf(files: RawDataFiles): readonly DataIssue[] {
@@ -37,37 +42,28 @@ describe('loadGameData', () => {
   });
 
   it('names the file and the field of a wrong value', () => {
-    const files = validFiles();
-    files['rules/simulation.json'] = { tickRate: 'fast', maxStepsPerFrame: 5 };
-
-    const issues = issuesOf(files);
+    const issues = issuesOf(withFields('rules/simulation.json', { tickRate: 'fast' }));
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ file: 'rules/simulation.json', path: 'tickRate' });
   });
 
   it('puts the file and the field in the error message', () => {
-    const files = validFiles();
-    files['maps/test-arena.json'] = { ...(files['maps/test-arena.json'] as object), width: -1 };
-
-    expect(() => loadGameData(files)).toThrow(/maps\/test-arena\.json › width: /);
+    expect(() => loadGameData(withFields('maps/test-arena.json', { width: -1 }))).toThrow(
+      /maps\/test-arena\.json › width: /,
+    );
   });
 
   it('points a misspelled field at the field itself', () => {
-    const files = validFiles();
-    files['rules/simulation.json'] = { tickRate: 30, maxStepsPerFrame: 5, tickrate: 60 };
-
-    expect(issuesOf(files)).toEqual([
+    expect(issuesOf(withFields('rules/simulation.json', { tickrate: 60 }))).toEqual([
       { file: 'rules/simulation.json', path: 'tickrate', message: 'unknown field (typo?)' },
     ]);
   });
 
-  it('reports every problem in one run', () => {
-    const files = validFiles();
-    files['rules/simulation.json'] = { tickRate: 0, maxStepsPerFrame: 5 };
-    files['maps/test-arena.json'] = { id: 'test-arena', name: 'map.test-arena.name', width: 800 };
+  it('reports every problem in one run, grouped by file', () => {
+    const files = withFields('rules/simulation.json', { tickRate: 0 });
+    files['maps/test-arena.json'] = { ...files['maps/test-arena.json'], height: undefined };
 
-    const issues = issuesOf(files);
-    expect(issues.map((issue) => `${issue.file} › ${issue.path}`)).toEqual([
+    expect(issuesOf(files).map((issue) => `${issue.file} › ${issue.path}`)).toEqual([
       'maps/test-arena.json › height',
       'rules/simulation.json › tickRate',
     ]);
@@ -99,62 +95,68 @@ describe('loadGameData', () => {
   it('requires the match rules', () => {
     const files = validFiles();
     delete files['rules/match.json'];
-
     expect(issuesOf(files)).toEqual([
       { file: 'rules/match.json', path: '(root)', message: 'required file is missing' },
     ]);
   });
 
   it('requires the match map to exist', () => {
-    const files = validFiles();
-    files['rules/match.json'] = { map: 'missing-map' };
-
-    expect(issuesOf(files)).toEqual([
+    expect(issuesOf(withFields('rules/match.json', { map: 'missing-map' }))).toEqual([
       expect.objectContaining({ file: 'rules/match.json', path: 'map' }),
     ]);
   });
 
   it('requires a map id to match its file name', () => {
-    const files = validFiles();
-    files['maps/test-arena.json'] = {
-      id: 'other',
-      name: 'map.test-arena.name',
-      width: 1,
-      height: 1,
-    };
-
-    expect(issuesOf(files)).toContainEqual(
+    expect(issuesOf(withFields('maps/test-arena.json', { id: 'other' }))).toContainEqual(
       expect.objectContaining({ file: 'maps/test-arena.json', path: 'id' }),
     );
   });
 
   it('requires every language to translate the same keys', () => {
-    const files = validFiles();
-    files['locales/fr.json'] = {
+    const files = withFile('locales/fr.json', {
       'map.test-arena.name': 'Arène de test',
       'hud.fps': 'FPS : {value}',
-    };
-
+    });
     expect(issuesOf(files)).toEqual([
-      {
-        file: 'locales/en.json',
-        path: 'hud.fps',
-        message: 'missing translation (present in fr)',
-      },
+      { file: 'locales/en.json', path: 'hud.fps', message: 'missing translation (present in fr)' },
     ]);
   });
 
   it('requires referenced translation keys to exist', () => {
-    const files = validFiles();
-    files['maps/test-arena.json'] = {
-      id: 'test-arena',
-      name: 'map.unknown.name',
-      width: 800,
-      height: 600,
-    };
-
-    expect(issuesOf(files)).toEqual([
+    expect(issuesOf(withFields('maps/test-arena.json', { name: 'map.unknown.name' }))).toEqual([
       expect.objectContaining({ file: 'maps/test-arena.json', path: 'name' }),
+    ]);
+  });
+});
+
+describe('map rules', () => {
+  const blueBase = { team: 'blue', fountain: { x: 60, y: 300 }, fountainRadius: 40 };
+
+  it('requires obstacles to lie inside the map', () => {
+    const files = withFields('maps/test-arena.json', {
+      obstacles: [{ x: 700, y: 0, width: 200, height: 50 }],
+    });
+    expect(issuesOf(files)).toEqual([
+      expect.objectContaining({ file: 'maps/test-arena.json', path: 'obstacles[0]' }),
+    ]);
+  });
+
+  it('requires exactly one base per team', () => {
+    expect(issuesOf(withFields('maps/test-arena.json', { bases: [blueBase] }))).toEqual([
+      expect.objectContaining({ path: 'bases', message: expect.stringContaining('"red"') }),
+    ]);
+  });
+
+  it('rejects a fountain outside the map or inside an obstacle', () => {
+    const files = withFields('maps/test-arena.json', {
+      bases: [
+        { ...blueBase, fountain: { x: -10, y: 300 } },
+        { team: 'red', fountain: { x: 400, y: 300 }, fountainRadius: 40 },
+      ],
+    });
+    expect(issuesOf(files).map((issue) => issue.path)).toEqual([
+      'bases[0].fountain',
+      'bases[1].fountain',
     ]);
   });
 });

@@ -2,5 +2,19 @@
   "id": "lane",
   "name": "map.lane.name",
   "width": 5000,
-  "height": 1500
+  "height": 1500,
+  "navCellSize": 25,
+  "obstacles": [
+    { "x": 800, "y": 0, "width": 3400, "height": 380 },
+    { "x": 800, "y": 1120, "width": 3400, "height": 380 },
+    { "x": 1450, "y": 380, "width": 260, "height": 120 },
+    { "x": 3250, "y": 1000, "width": 300, "height": 120 },
+    { "x": 1950, "y": 620, "width": 160, "height": 240 },
+    { "x": 2850, "y": 560, "width": 140, "height": 200 },
+    { "x": 2450, "y": 900, "width": 140, "height": 140 }
+  ],
+  "bases": [
+    { "team": "blue", "fountain": { "x": 320, "y": 750 }, "fountainRadius": 220 },
+    { "team": "red", "fountain": { "x": 4680, "y": 750 }, "fountainRadius": 220 }
+  ]
 }
