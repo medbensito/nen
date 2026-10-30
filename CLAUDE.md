@@ -146,7 +146,7 @@ Le chargeur convertit les secondes en ticks ; le code de la sim ne manipule que 
 
 1. **Un jalon à la fois**, dans l'ordre de `docs/ROADMAP.md`. Ne commence jamais le jalon suivant sans validation explicite du porteur du projet.
 2. **Avant de coder un jalon**, pose les questions bloquantes. Pour le reste, fais un choix raisonnable et signale-le (« Choix signalé : … ») dans le rapport et dans la PR.
-3. **Branches** : `m<N>-<slug>` créée depuis `main` (ex. `m1-movement-camera`). PR vers `main` en fin de jalon. Après validation : merge, tag `m<N>`, statut mis à jour dans `docs/ROADMAP.md`.
+3. **Branches** : `m<N>-<slug>` créée depuis `main` (ex. `m1-movement-camera`). PR vers `main` en fin de jalon. Après validation : merge, tag `m<N>` (poussé par le porteur du projet quand l'agent n'a pas le droit de créer de tag), statut mis à jour dans `docs/ROADMAP.md`.
 4. **Rapport de fin de jalon**, toujours avec ces rubriques :
    - **Fait** : ce qui est livré.
    - **Pas fait** : ce qui manque ou est reporté, et pourquoi.

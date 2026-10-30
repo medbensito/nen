@@ -9,7 +9,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 | Jalon | Sujet | Statut |
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
-| M1 | Déplacement et caméra | À faire |
+| M1 | Déplacement et caméra | En cours |
 | M2 | Combat de base | À faire |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
