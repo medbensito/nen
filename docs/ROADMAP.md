@@ -11,7 +11,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 | M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | Fait (tag `m1`) |
 | M2 | Combat de base | Fait (tag `m2`) |
-| M3 | Nen et capacités | En cours |
+| M3 | Nen et capacités | En revue |
 | M4 | Sbires, tours, or et niveaux | À faire |
 | M5 | Boucle de partie complète | À faire |
 
@@ -77,13 +77,17 @@ Réponses prises en compte : le mannequin riposte, pas d'attaque automatique, ch
 - Les quatre capacités de Ressac (voir `docs/GAME_DESIGN.md`).
 - HUD : PV, jauge de Nen, icônes de capacités avec temps de recharge et état « pas assez de Nen ».
 
+Réponses prises en compte : lancement rapide vers le curseur ; un ordre pendant la canalisation de Décharge l'annule sans coût.
+
+Écart : les effets « zone » et « ralentissement » ne sont pas implémentés, aucune capacité ne s'en sert (voir `docs/decisions/0004-abilities-and-nen.md`).
+
 **Critères d'acceptation**
-- [ ] Une capacité est refusée, sans rien consommer, si le Nen est insuffisant, si elle est en recharge ou si le champion est épuisé. (auto)
-- [ ] La régénération ne démarre qu'après le délai hors combat défini en données. (auto)
-- [ ] À 0 Nen, l'épuisement applique ses effets (dégâts subis augmentés, capacités bloquées) et se lève au seuil prévu. (auto)
-- [ ] Aura détachée rend la part prévue du coût quand un projectile touche, une fois par lancer ; un test sans la règle prouve la différence. (auto)
-- [ ] Changer un coût ou un temps de recharge dans le JSON change le comportement, sans toucher au code. (auto)
-- [ ] Les quatre capacités sont jouables et lisibles à l'écran. (manuel)
+- [x] Une capacité est refusée, sans rien consommer, si le Nen est insuffisant, si elle est en recharge ou si le champion est épuisé. (auto : `systems/abilities.test.ts`, `systems/nen.test.ts`)
+- [x] La régénération ne démarre qu'après le délai hors combat défini en données. (auto : `systems/nen.test.ts`)
+- [x] À 0 Nen, l'épuisement applique ses effets (dégâts subis augmentés, capacités bloquées) et se lève au seuil prévu. (auto : `systems/nen.test.ts`)
+- [x] Aura détachée rend la part prévue du coût quand un projectile touche, une fois par lancer ; un test sans la règle prouve la différence. (auto : `systems/specialization.test.ts`)
+- [x] Changer un coût ou un temps de recharge dans le JSON change le comportement, sans toucher au code. (auto : `systems/abilities.test.ts`)
+- [ ] Les quatre capacités sont jouables et lisibles à l'écran. (manuel — vérifié en headless, `e2e/abilities.spec.ts`)
 
 ## M4 — Sbires, tours, or et niveaux
 
