@@ -1,0 +1,69 @@
+import { describe, expect, it } from 'vitest';
+import type { Command } from '../src/commands/command';
+import { hashState } from '../src/core/hash';
+import { createSimulation } from '../src/core/simulation';
+import { fixtureGameData } from './fixtures/game-data';
+import { jitter, spawnEvery, stopTeleportsToOrigin } from './fixtures/systems';
+
+type CommandScript = ReadonlyMap<number, readonly Command[]>;
+
+const SCRIPT: CommandScript = new Map([
+  [120, [{ type: 'stop', entityId: 1 }]],
+  [480, [{ type: 'stop', entityId: 3 }]],
+  [
+    900,
+    [
+      { type: 'stop', entityId: 2 },
+      { type: 'stop', entityId: 5 },
+    ],
+  ],
+]);
+
+/** Runs a game and returns the state hash after every tick. */
+function run(seed: number, script: CommandScript, ticks = 1000): string[] {
+  const sim = createSimulation({
+    data: fixtureGameData(),
+    seed,
+    systems: [spawnEvery(50), stopTeleportsToOrigin, jitter],
+  });
+  const hashes: string[] = [];
+  for (let tick = 0; tick < ticks; tick++) {
+    for (const command of script.get(tick) ?? []) sim.enqueue(command);
+    sim.step();
+    hashes.push(hashState(sim.state));
+  }
+  return hashes;
+}
+
+describe('determinism', () => {
+  it('gives the same state, tick by tick, for the same seed and commands', () => {
+    const first = run(2026, SCRIPT);
+    const second = run(2026, SCRIPT);
+    expect(first).toHaveLength(1000);
+    expect(second).toEqual(first);
+  });
+
+  it('diverges with a different seed', () => {
+    expect(run(1, SCRIPT).at(-1)).not.toBe(run(2, SCRIPT).at(-1));
+  });
+
+  it('diverges when a command arrives on a different tick', () => {
+    const shifted: CommandScript = new Map(
+      [...SCRIPT].map(([tick, commands]) => [tick + 1, commands]),
+    );
+    expect(run(2026, SCRIPT).at(-1)).not.toBe(run(2026, shifted).at(-1));
+  });
+
+  it('keeps a state that survives a JSON round trip unchanged', () => {
+    const sim = createSimulation({
+      data: fixtureGameData(),
+      seed: 7,
+      systems: [spawnEvery(10), jitter],
+    });
+    for (let tick = 0; tick < 200; tick++) sim.step();
+
+    const snapshot = JSON.parse(JSON.stringify(sim.state)) as unknown;
+    expect(snapshot).toEqual(sim.state);
+    expect(hashState(snapshot)).toBe(hashState(sim.state));
+  });
+});
