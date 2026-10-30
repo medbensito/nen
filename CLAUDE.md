@@ -77,14 +77,15 @@ nen/
 │   │   │   ├── commands/     commandes entrantes (Move, Attack, Cast, Stop…)
 │   │   │   ├── systems/      movement, combat, nen, abilities, ai, waves, economy, match
 │   │   │   └── nav/          grille de navigation, A*, lissage de chemin
-│   │   └── test/             scénarios et tests d'intégration (parties complètes)
-│   │       └── fixtures/     données de test inline, indépendantes de data/
+│   │   └── test/             scénarios, parties complètes, benchmarks.ts
+│   │       └── fixtures/     données et systèmes de test, indépendants de data/
 │   └── client/               @nen/client : Phaser 4
 │       ├── src/
-│       │   ├── scenes/
+│       │   ├── scenes/       arena (monde + horloge de la sim), hud (écran)
 │       │   ├── render/       vues synchronisées depuis l'état de la sim
 │       │   ├── input/        souris et clavier → commandes
-│       │   └── ui/           HUD
+│       │   └── ui/           éléments du HUD, clés de texte
+│       ├── e2e/              tests de fumée Playwright
 │       └── public/
 └── tools/                    scripts Node (validation des données, benchmarks)
 ```
