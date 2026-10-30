@@ -13,6 +13,7 @@ export function spawnAtStart(count: number): System {
     for (let i = 0; i < count; i++) {
       spawnEntity(state, {
         kind: 'wanderer',
+        defId: 'wanderer',
         team: ctx.rng.float() < 0.5 ? 'blue' : 'red',
         position: { x: ctx.rng.range(0, 800), y: ctx.rng.range(0, 600) },
         radius: 10,
@@ -27,6 +28,7 @@ export function spawnEvery(interval: number): System {
     if (ctx.tick % interval !== 0) return;
     spawnEntity(state, {
       kind: 'wanderer',
+      defId: 'wanderer',
       team: 'neutral',
       position: { x: ctx.rng.range(0, 800), y: ctx.rng.range(0, 600) },
       radius: 10,

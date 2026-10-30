@@ -60,9 +60,29 @@ function runGame(seed: number, ticks = 1000): string[] {
   return hashes;
 }
 
+/** A fight with the dummy: chase, projectiles, damage. */
+function runFight(seed: number, ticks = 1500): string[] {
+  const sim = createSimulation({ data: fixtureGameData(), seed });
+  const championId = sim.state.players[0]?.entityId ?? -1;
+  const dummyId = sim.state.entities.find((entity) => entity.kind === 'unit')?.id ?? -1;
+  const hashes: string[] = [];
+  for (let tick = 0; tick < ticks; tick++) {
+    if (tick % 200 === 0) sim.enqueue({ type: 'attack', entityId: championId, targetId: dummyId });
+    if (tick % 200 === 150)
+      sim.enqueue({ type: 'move', entityId: championId, target: { x: 60, y: 500 } });
+    sim.step();
+    hashes.push(hashState(sim.state));
+  }
+  return hashes;
+}
+
 describe('determinism', () => {
   it('holds for the game systems and move orders', () => {
     expect(runGame(3)).toEqual(runGame(3));
+  });
+
+  it('holds through combat', () => {
+    expect(runFight(4)).toEqual(runFight(4));
   });
 
   it('gives the same state, tick by tick, for the same seed and commands', () => {

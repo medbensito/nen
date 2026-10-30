@@ -1,5 +1,6 @@
 import type { System } from '../core/simulation';
 import { distance } from '../core/vec2';
+import { isAlive } from '../state/game-state';
 
 /**
  * Moves entities along their path at their speed. A tick's movement budget
@@ -9,6 +10,8 @@ export const movementSystem: System = (state) => {
   for (const entity of state.entities) {
     const movement = entity.movement;
     if (!movement || movement.path.length === 0) continue;
+    // Entities without health (props, test wanderers) move too; dead ones do not.
+    if (entity.health && !isAlive(entity)) continue;
 
     const { position } = entity;
     const { path } = movement;

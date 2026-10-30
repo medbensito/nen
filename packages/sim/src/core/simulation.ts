@@ -1,4 +1,5 @@
 import type { Command } from '../commands/command';
+import type { SimEvent } from './events';
 import { createNavIndex, type NavIndex } from '../nav/nav-index';
 import type { GameData } from '../schema/loader';
 import { createGameState, type GameState } from '../state/game-state';
@@ -15,6 +16,8 @@ export interface TickContext {
   readonly nav: NavIndex;
   /** Commands queued since the previous tick, in the order they were queued. */
   readonly commands: readonly Command[];
+  /** Systems report what happened here; read back through `Simulation.events`. */
+  readonly events: SimEvent[];
 }
 
 /** A system reads the context and mutates the state. It is the only place where state changes. */
@@ -34,6 +37,8 @@ export interface Simulation {
   readonly nav: NavIndex;
   /** Read-only view for rendering and tests. Only systems mutate the state, inside step(). */
   readonly state: DeepReadonly<GameState>;
+  /** What happened during the last step. */
+  readonly events: readonly SimEvent[];
   /** Queues a command, applied by the next step(). */
   enqueue(command: Command): void;
   /** Advances the game by exactly one tick. */
@@ -51,18 +56,23 @@ export function createSimulation(options: SimulationOptions): Simulation {
   (options.setup ?? setupMatch)(state, data);
   const rng = createRng(state.rng);
   let queue: Command[] = [];
+  let events: SimEvent[] = [];
 
   return {
     data,
     nav,
     state,
+    get events() {
+      return events;
+    },
     enqueue(command) {
       queue.push(command);
     },
     step() {
       const commands = queue;
       queue = [];
-      const ctx: TickContext = { tick: state.tick, data, rng, nav, commands };
+      events = [];
+      const ctx: TickContext = { tick: state.tick, data, rng, nav, commands, events };
       for (const system of systems) system(state, ctx);
       state.tick += 1;
     },

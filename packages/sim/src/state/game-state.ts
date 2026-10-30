@@ -1,8 +1,10 @@
 import { createRngState, type RngState } from '../core/rng';
-import { copy, type Vec2 } from '../core/vec2';
+import type { DeepReadonly } from '../core/types';
+import type { Vec2 } from '../core/vec2';
 
 export type EntityId = number;
 export type PlayerId = number;
+export type ProjectileId = number;
 export type Team = 'blue' | 'red' | 'neutral';
 
 export interface Movement {
@@ -12,18 +14,76 @@ export interface Movement {
   path: Vec2[];
 }
 
+export interface Health {
+  current: number;
+  max: number;
+}
+
+/** Basic attack: stats copied from the definition, plus the attack in progress. */
+export interface Attack {
+  damage: number;
+  range: number;
+  periodTicks: number;
+  windupTicks: number;
+  /** 0: the hit lands at the end of the wind-up, without projectile. */
+  projectileSpeed: number;
+  projectileRadius: number;
+  /** Entity this attacker is ordered to attack, or null. */
+  target: EntityId | null;
+  /** Ticks before a new attack may start. */
+  cooldownTicks: number;
+  /** Ticks left in the current wind-up; 0 when not winding up. */
+  windupLeft: number;
+  /** Next tick at which a chasing attacker recomputes its path. */
+  repathTick: number;
+}
+
+export interface Respawn {
+  /** Where the entity comes back to life. */
+  home: Vec2;
+  delayTicks: number;
+}
+
+/** Strikes back at the last attacker for a while, without ever chasing. */
+export interface Retaliation {
+  durationTicks: number;
+  targetId: EntityId | null;
+  untilTick: number;
+}
+
 /**
- * An entity is plain data; optional components (movement today; health, nen…
- * later) say what it can do.
+ * An entity is plain data; optional components say what it can do. An entity
+ * with `health` can be attacked; `deadUntil` is set while it is dead.
  */
 export interface Entity {
   id: EntityId;
   kind: string;
+  /** Id of its definition in data/ (champion or unit id). */
+  defId: string;
   team: Team;
   position: Vec2;
   /** Body radius, in world units. */
   radius: number;
   movement?: Movement;
+  health?: Health;
+  armor?: number;
+  attack?: Attack;
+  respawn?: Respawn;
+  retaliation?: Retaliation;
+  /** Tick at which a dead entity respawns (or is removed, without `respawn`). */
+  deadUntil?: number;
+}
+
+/** A homing projectile: it follows its target and always hits, unless the target dies first. */
+export interface Projectile {
+  id: ProjectileId;
+  sourceId: EntityId;
+  targetId: EntityId;
+  position: Vec2;
+  /** World units per tick. */
+  speed: number;
+  radius: number;
+  damage: number;
 }
 
 export interface Player {
@@ -42,21 +102,30 @@ export interface GameState {
   /** Shared by every system through the tick context. Never replace this object. */
   rng: RngState;
   nextEntityId: EntityId;
+  nextProjectileId: ProjectileId;
   players: Player[];
   /** Always sorted by id: ids only grow, and systems iterate in this order. */
   entities: Entity[];
+  /** In launch order. */
+  projectiles: Projectile[];
 }
 
 export function createGameState(seed: number): GameState {
-  return { tick: 0, rng: createRngState(seed), nextEntityId: 1, players: [], entities: [] };
+  return {
+    tick: 0,
+    rng: createRngState(seed),
+    nextEntityId: 1,
+    nextProjectileId: 1,
+    players: [],
+    entities: [],
+    projectiles: [],
+  };
 }
 
 export function spawnEntity(state: GameState, init: Omit<Entity, 'id'>): Entity {
-  // Copy nested data so the caller's objects never alias the state.
-  const entity: Entity = { ...init, id: state.nextEntityId, position: copy(init.position) };
-  if (init.movement) {
-    entity.movement = { speed: init.movement.speed, path: init.movement.path.map((p) => copy(p)) };
-  }
+  // Deep copy through JSON: state is JSON data by design, and the caller's
+  // objects must never alias it.
+  const entity = JSON.parse(JSON.stringify({ ...init, id: state.nextEntityId })) as Entity;
   state.nextEntityId += 1;
   state.entities.push(entity);
   return entity;
@@ -72,6 +141,15 @@ export function removeEntity(state: GameState, id: EntityId): boolean {
   if (index === -1) return false;
   state.entities.splice(index, 1);
   return true;
+}
+
+/** Alive: can be targeted, acts, and takes part in the game. */
+export function isAlive(entity: DeepReadonly<Entity>): boolean {
+  return entity.health !== undefined && entity.deadUntil === undefined;
+}
+
+export function isHostile(a: DeepReadonly<Entity>, b: DeepReadonly<Entity>): boolean {
+  return a.team !== b.team;
 }
 
 function indexOfEntity(state: GameState, id: EntityId): number {

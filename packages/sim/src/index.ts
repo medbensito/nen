@@ -1,5 +1,6 @@
 export * from './commands/command';
 export * from './core/clock';
+export * from './core/events';
 export * from './core/geometry';
 export * from './core/hash';
 export * from './core/rng';
@@ -25,3 +26,5 @@ export * from './nav/line-of-sight';
 export * from './nav/nav-grid';
 export * from './nav/nav-index';
 export * from './nav/pathfinding';
+export * from './systems/combat';
+export * from './systems/damage';
