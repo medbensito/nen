@@ -9,7 +9,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 | Jalon | Sujet | Statut |
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
-| M1 | Déplacement et caméra | En revue |
+| M1 | Déplacement et caméra | Fait (tag `m1`) |
 | M2 | Combat de base | À faire |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
@@ -49,7 +49,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 - [x] Modifier `moveSpeed` dans le JSON du champion change la vitesse, sans toucher au code. (auto : `systems/movement.test.ts`)
 - [x] Sur 1 000 déplacements à destination aléatoire, le champion ne traverse jamais un obstacle. (auto : `test/random-moves.test.ts`)
 - [x] Changer un raccourci dans `data/input/` change la touche en jeu. (auto : `input/key-bindings.test.ts`)
-- [ ] Déplacement fluide et 58 fps ou plus sur la machine de référence. (manuel — en headless, le thread principal prend environ 2 ms par frame, vérifié par `e2e/movement.spec.ts`)
+- [x] Déplacement fluide et 58 fps ou plus sur la machine de référence. (manuel — validé par le porteur du projet ; en headless, le thread principal prend environ 2 ms par frame, vérifié par `e2e/movement.spec.ts`)
 
 ## M2 — Combat de base
 
