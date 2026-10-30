@@ -5,5 +5,5 @@
     "lib": ["ES2022"],
     "types": ["node"]
   },
-  "include": ["**/*.ts", "../*.config.ts"]
+  "include": ["**/*.ts", "../*.config.ts", "../packages/*/*.config.ts"]
 }
