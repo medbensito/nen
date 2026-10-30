@@ -1,0 +1,21 @@
+{
+  "id": "ressac-orbe",
+  "name": "ability.ressac-orbe.name",
+  "description": "ability.ressac-orbe.description",
+  "cost": 50,
+  "cooldown": 12,
+  "unlockLevel": 1,
+  "effect": {
+    "type": "turret",
+    "placementRange": 600,
+    "radius": 16,
+    "duration": 4,
+    "interval": 0.8,
+    "acquisitionRange": 500,
+    "shot": {
+      "damage": 25,
+      "speed": 1400,
+      "radius": 8
+    }
+  }
+}

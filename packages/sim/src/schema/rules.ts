@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { idSchema, teamSchema } from './common';
-import { secondsToTicks } from './units';
+import { perSecondToPerTick, secondsToTicks } from './units';
 
 /** data/rules/simulation.json */
 export const simulationRulesSchema = z.strictObject({
@@ -40,6 +40,8 @@ export const combatRulesSchema = z.strictObject({
     base: z.number().nonnegative(),
     perLevel: z.number().nonnegative(),
   }),
+  /** Share of max health and nen restored per second to units standing in their own fountain. */
+  fountainRegen: z.number().nonnegative(),
 });
 
 export type CombatRulesDef = z.infer<typeof combatRulesSchema>;
@@ -48,6 +50,8 @@ export interface CombatRules {
   armorScale: number;
   respawnBaseTicks: number;
   respawnPerLevelTicks: number;
+  /** Share of max health and nen per tick. */
+  fountainRegenPerTick: number;
 }
 
 export function compileCombatRules(def: CombatRulesDef, tickRate: number): CombatRules {
@@ -55,5 +59,43 @@ export function compileCombatRules(def: CombatRulesDef, tickRate: number): Comba
     armorScale: def.armorScale,
     respawnBaseTicks: secondsToTicks(def.respawn.base, tickRate),
     respawnPerLevelTicks: secondsToTicks(def.respawn.perLevel, tickRate),
+    fountainRegenPerTick: perSecondToPerTick(def.fountainRegen, tickRate),
+  };
+}
+
+/** data/rules/nen.json */
+export const nenRulesSchema = z.strictObject({
+  /** Seconds after dealing or taking damage from an enemy during which a unit counts as in combat. */
+  combatDuration: z.number().nonnegative(),
+  /** Nen per second. */
+  regen: z.strictObject({
+    outOfCombat: z.number().nonnegative(),
+    inCombat: z.number().nonnegative(),
+  }),
+  /** Reached when spending empties the gauge. */
+  exhaustion: z.strictObject({
+    damageTakenMultiplier: z.number().min(1),
+    /** Share of the max gauge at which exhaustion ends. */
+    recoverAt: z.number().min(0).max(1),
+  }),
+});
+
+export type NenRulesDef = z.infer<typeof nenRulesSchema>;
+
+export interface NenRules {
+  combatTicks: number;
+  regenOutOfCombatPerTick: number;
+  regenInCombatPerTick: number;
+  exhaustedDamageTakenMultiplier: number;
+  exhaustionRecoverAt: number;
+}
+
+export function compileNenRules(def: NenRulesDef, tickRate: number): NenRules {
+  return {
+    combatTicks: secondsToTicks(def.combatDuration, tickRate),
+    regenOutOfCombatPerTick: perSecondToPerTick(def.regen.outOfCombat, tickRate),
+    regenInCombatPerTick: perSecondToPerTick(def.regen.inCombat, tickRate),
+    exhaustedDamageTakenMultiplier: def.exhaustion.damageTakenMultiplier,
+    exhaustionRecoverAt: def.exhaustion.recoverAt,
   };
 }

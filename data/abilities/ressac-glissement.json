@@ -1,0 +1,13 @@
+{
+  "id": "ressac-glissement",
+  "name": "ability.ressac-glissement.name",
+  "description": "ability.ressac-glissement.description",
+  "cost": 25,
+  "cooldown": 10,
+  "unlockLevel": 1,
+  "effect": {
+    "type": "dash",
+    "distance": 350,
+    "speed": 1400
+  }
+}

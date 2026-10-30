@@ -1,0 +1,19 @@
+{
+  "id": "ressac-decharge",
+  "name": "ability.ressac-decharge.name",
+  "description": "ability.ressac-decharge.description",
+  "cost": {
+    "allRemaining": true,
+    "minimum": 60
+  },
+  "cooldown": 60,
+  "unlockLevel": 1,
+  "effect": {
+    "type": "beam",
+    "channel": 1,
+    "length": 1400,
+    "width": 120,
+    "baseDamage": 100,
+    "damagePerNen": 1.5
+  }
+}

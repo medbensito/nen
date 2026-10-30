@@ -6,8 +6,15 @@ import type { CameraStatus } from './render/camera-rig';
 export interface NenDebug {
   readonly tick: () => number;
   readonly hash: () => string;
-  /** Position of the local player's champion and whether it is walking. */
-  readonly champion: () => { x: number; y: number; moving: boolean } | null;
+  /** Position of the local player's champion, whether it is walking, its nen and cooldowns. */
+  readonly champion: () => {
+    x: number;
+    y: number;
+    moving: boolean;
+    nen: number;
+    exhausted: boolean;
+    cooldowns: number[];
+  } | null;
   readonly cameraLocked: () => boolean;
   /** Screen position of a world point in the arena camera, relative to the canvas. */
   readonly screenOf: (x: number, y: number) => { x: number; y: number } | null;
@@ -46,6 +53,9 @@ export function installDebugHook(
         x: entity.position.x,
         y: entity.position.y,
         moving: (entity.movement?.path.length ?? 0) > 0,
+        nen: entity.nen?.current ?? 0,
+        exhausted: entity.nen?.exhausted ?? false,
+        cooldowns: entity.abilities?.map((slot) => slot.cooldownTicks) ?? [],
       };
     },
     cameraLocked: () => cameraStatus.locked,

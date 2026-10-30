@@ -1,8 +1,11 @@
-import { LOCAL_PLAYER_ID, type Simulation } from '@nen/sim';
+import { LOCAL_PLAYER_ID, type SimEvent, type Simulation } from '@nen/sim';
 import * as Phaser from 'phaser';
 import type { Translate } from '../i18n';
+import { loadKeyboardLayout } from '../input/key-labels';
 import type { CameraStatus } from '../render/camera-rig';
+import { SIM_EVENTS } from '../sim-events';
 import { DEPTH, THEME } from '../theme';
+import { AbilityBar } from '../ui/ability-bar';
 import { FpsCounter } from '../ui/fps-counter';
 import { TEXT } from '../ui/text-keys';
 
@@ -27,6 +30,7 @@ export class HudScene extends Phaser.Scene {
   private fpsCounter: FpsCounter | undefined;
   private cameraText: Phaser.GameObjects.Text | undefined;
   private respawnText: Phaser.GameObjects.Text | undefined;
+  private abilityBar: AbilityBar | undefined;
   private shownLocked: boolean | undefined;
   private shownRespawn = '';
 
@@ -50,6 +54,31 @@ export class HudScene extends Phaser.Scene {
       .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(DEPTH.hud);
+    const { sim, t } = this.deps;
+    const championId = this.championId();
+    if (championId !== undefined) {
+      const { keys } = sim.data.input.bindings;
+      const abilityBar = new AbilityBar(this, {
+        sim,
+        t,
+        championId,
+        keyCodes: [keys.ability1, keys.ability2, keys.ability3, keys.ability4],
+      });
+      this.abilityBar = abilityBar;
+      void loadKeyboardLayout().then((layout) => abilityBar.setKeyboardLayout(layout));
+      const onEvents = (events: readonly SimEvent[]) => {
+        for (const event of events) {
+          if (event.type === 'cast-rejected' && event.entityId === championId) {
+            abilityBar.showRejection(event.reason);
+          }
+        }
+      };
+      this.game.events.on(SIM_EVENTS, onEvents);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+        this.game.events.off(SIM_EVENTS, onEvents),
+      );
+    }
+
     this.layout();
     this.scale.on(Phaser.Scale.Events.RESIZE, (size: Phaser.Structs.Size) => {
       this.cameras.resize(size.width, size.height);
@@ -61,6 +90,12 @@ export class HudScene extends Phaser.Scene {
     this.fpsCounter?.update(delta, this.game.loop.actualFps);
     this.updateCameraText();
     this.updateRespawnText();
+    this.abilityBar?.update();
+  }
+
+  private championId(): number | undefined {
+    return this.deps.sim.state.players.find((candidate) => candidate.id === LOCAL_PLAYER_ID)
+      ?.entityId;
   }
 
   private updateCameraText(): void {
@@ -92,5 +127,6 @@ export class HudScene extends Phaser.Scene {
 
   private layout(): void {
     this.respawnText?.setPosition(this.scale.width / 2, 64);
+    this.abilityBar?.place(this.scale.width, this.scale.height);
   }
 }

@@ -12,6 +12,7 @@ export const movementSystem: System = (state) => {
     if (!movement || movement.path.length === 0) continue;
     // Entities without health (props, test wanderers) move too; dead ones do not.
     if (entity.health && !isAlive(entity)) continue;
+    if (entity.channel || entity.dash) continue;
 
     const { position } = entity;
     const { path } = movement;

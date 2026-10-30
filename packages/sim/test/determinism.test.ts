@@ -76,7 +76,28 @@ function runFight(seed: number, ticks = 1500): string[] {
   return hashes;
 }
 
+/** Every ability, the nen gauge, exhaustion and refunds. */
+function runAbilities(seed: number, ticks = 1200): string[] {
+  const sim = createSimulation({ data: fixtureGameData(), seed });
+  const entityId = sim.state.players[0]?.entityId ?? -1;
+  const dummy = sim.state.entities.find((entity) => entity.kind === 'unit');
+  const at = dummy ? { x: dummy.position.x, y: dummy.position.y } : { x: 300, y: 80 };
+  const hashes: string[] = [];
+  for (let tick = 0; tick < ticks; tick++) {
+    const slot = Math.floor(tick / 50) % 4;
+    if (tick % 50 === 0) sim.enqueue({ type: 'cast', entityId, slot, target: at });
+    if (tick % 50 === 25) sim.enqueue({ type: 'attack', entityId, targetId: dummy?.id ?? -1 });
+    sim.step();
+    hashes.push(hashState(sim.state));
+  }
+  return hashes;
+}
+
 describe('determinism', () => {
+  it('holds with abilities, nen and exhaustion', () => {
+    expect(runAbilities(5)).toEqual(runAbilities(5));
+  });
+
   it('holds for the game systems and move orders', () => {
     expect(runGame(3)).toEqual(runGame(3));
   });

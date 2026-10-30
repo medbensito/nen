@@ -1,5 +1,9 @@
 {
   "keys": {
+    "ability1": "KeyQ",
+    "ability2": "KeyW",
+    "ability3": "KeyE",
+    "ability4": "KeyR",
     "stop": "KeyS",
     "toggleCameraLock": "KeyY",
     "centerCamera": "Space"

@@ -81,12 +81,17 @@ export class UnitViews {
       view.rendered.y = y;
 
       const next = entity.movement?.path[0];
-      if (next) view.facing = Math.atan2(next.y - y, next.x - x);
+      const aim = entity.channel?.direction ?? entity.dash?.direction;
+      if (aim) view.facing = Math.atan2(aim.y, aim.x);
+      else if (next) view.facing = Math.atan2(next.y - y, next.x - x);
 
+      // Exhausted units look drained.
+      view.body.setAlpha(entity.nen?.exhausted ? 0.5 : 1);
       view.body.setPosition(x, y);
+      const noseOffset = entity.kind === 'summon' ? 0 : NOSE_OFFSET;
       view.nose.setPosition(
-        x + Math.cos(view.facing) * entity.radius * NOSE_OFFSET,
-        y + Math.sin(view.facing) * entity.radius * NOSE_OFFSET,
+        x + Math.cos(view.facing) * entity.radius * noseOffset,
+        y + Math.sin(view.facing) * entity.radius * noseOffset,
       );
       this.placeBar(view, entity, x, y);
       this.drawPath(view.rendered, entity);
@@ -107,12 +112,14 @@ export class UnitViews {
   private createView(entity: DeepReadonly<Entity>): UnitView {
     const color = THEME.team[entity.team];
     const { x, y } = entity.position;
+    // Summons (orbs) are glowing rings without a facing.
+    const summon = entity.kind === 'summon';
     const body = this.scene.add
-      .circle(x, y, entity.radius, color, 1)
-      .setStrokeStyle(3, THEME.unitOutline)
+      .circle(x, y, entity.radius, color, summon ? 0.35 : 1)
+      .setStrokeStyle(3, summon ? color : THEME.unitOutline)
       .setDepth(DEPTH.units);
     const nose = this.scene.add
-      .circle(x, y, entity.radius * NOSE_SIZE, THEME.unitOutline, 0.85)
+      .circle(x, y, entity.radius * NOSE_SIZE, summon ? color : THEME.unitOutline, 0.85)
       .setDepth(DEPTH.units);
     const view: UnitView = {
       body,

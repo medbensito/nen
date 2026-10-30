@@ -44,6 +44,55 @@ export interface Respawn {
   delayTicks: number;
 }
 
+export interface Nen {
+  current: number;
+  max: number;
+  /** Set when spending empties the gauge; abilities are blocked until it refills enough. */
+  exhausted: boolean;
+}
+
+export interface AbilitySlot {
+  abilityId: string;
+  cooldownTicks: number;
+}
+
+/** Standing still before a channelled ability fires. */
+export interface Channel {
+  slot: number;
+  /** Unit vector the ability will fire along. */
+  direction: Vec2;
+  releaseTick: number;
+}
+
+export interface Dash {
+  /** Unit vector. */
+  direction: Vec2;
+  /** World units per tick. */
+  speed: number;
+  /** Distance still to cover. */
+  remaining: number;
+}
+
+/** Summoned orb shooting enemies on its own. */
+export interface Turret {
+  casterId: EntityId;
+  untilTick: number;
+  intervalTicks: number;
+  nextShotTick: number;
+  acquisitionRange: number;
+  shotDamage: number;
+  shotSpeed: number;
+  shotRadius: number;
+  /** Nen the caster gets back on the first shot that hits, then 0. */
+  refund: number;
+}
+
+/** The specialization rule this entity plays by, with its parameters. */
+export interface SpecializationRuleState {
+  kind: 'projectile-hit-refund';
+  share: number;
+}
+
 /** Strikes back at the last attacker for a while, without ever chasing. */
 export interface Retaliation {
   durationTicks: number;
@@ -70,21 +119,49 @@ export interface Entity {
   attack?: Attack;
   respawn?: Respawn;
   retaliation?: Retaliation;
+  nen?: Nen;
+  /** Until this tick, the entity counts as in combat (it dealt or took damage from an enemy). */
+  combatUntil?: number;
+  abilities?: AbilitySlot[];
+  channel?: Channel;
+  dash?: Dash;
+  turret?: Turret;
+  specializationRule?: SpecializationRuleState;
   /** Tick at which a dead entity respawns (or is removed, without `respawn`). */
   deadUntil?: number;
 }
 
-/** A homing projectile: it follows its target and always hits, unless the target dies first. */
-export interface Projectile {
+interface ProjectileBase {
   id: ProjectileId;
+  /** Who gets the credit: damage source, refunds, retaliation. */
   sourceId: EntityId;
-  targetId: EntityId;
+  team: Team;
   position: Vec2;
   /** World units per tick. */
   speed: number;
   radius: number;
   damage: number;
+  /** Nen given back to the source on hit (specialization rule). */
+  refundAmount: number;
+  /** For orb shots: the orb whose one-time refund this hit may claim. */
+  refundTurretId: EntityId | null;
 }
+
+/** Follows its target and always hits, unless the target dies first. */
+export interface HomingProjectile extends ProjectileBase {
+  kind: 'homing';
+  targetId: EntityId;
+}
+
+/** Flies straight and stops at the first enemy it touches, or after its range. */
+export interface SkillshotProjectile extends ProjectileBase {
+  kind: 'skillshot';
+  /** Unit vector. */
+  direction: Vec2;
+  remaining: number;
+}
+
+export type Projectile = HomingProjectile | SkillshotProjectile;
 
 export interface Player {
   id: PlayerId;

@@ -22,10 +22,18 @@ export interface PlayerInputOptions {
   readonly pickEnemy: (screen: Readonly<Vec2>) => EntityId | null;
 }
 
+const ABILITY_SLOTS: Readonly<Record<string, number>> = {
+  ability1: 0,
+  ability2: 1,
+  ability3: 2,
+  ability4: 3,
+};
+
 /**
  * Turns mouse and keyboard into commands. Right click on an enemy: attack it;
  * elsewhere: move there. Holding the button repeats the order under the
- * cursor. Keys are matched by physical position.
+ * cursor. Ability keys cast at once toward the cursor (quick cast). Keys are
+ * matched by physical position.
  */
 export class PlayerInput {
   private readonly scene: Phaser.Scene;
@@ -85,10 +93,15 @@ export class PlayerInput {
       this.handlers.onCommand({ type: 'attack', entityId, targetId });
       return { type: 'attack', targetId };
     }
-    const world = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
-    const target = { x: world.x, y: world.y };
+    const target = this.cursorWorld();
     this.handlers.onCommand({ type: 'move', entityId, target });
     return { type: 'move', target };
+  }
+
+  private cursorWorld(): Vec2 {
+    const pointer = this.scene.input.activePointer;
+    const world = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    return { x: world.x, y: world.y };
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
@@ -98,7 +111,15 @@ export class PlayerInput {
     event.preventDefault();
     if (event.repeat) return;
 
-    if (action === 'stop') {
+    const slot = ABILITY_SLOTS[action];
+    if (slot !== undefined) {
+      this.handlers.onCommand({
+        type: 'cast',
+        entityId: this.options.championId,
+        slot,
+        target: this.cursorWorld(),
+      });
+    } else if (action === 'stop') {
       this.moveHeld = false;
       this.handlers.onCommand({ type: 'stop', entityId: this.options.championId });
     } else {
@@ -109,7 +130,9 @@ export class PlayerInput {
   private handleKeyUp(event: KeyboardEvent): void {
     if (this.alreadyHandled(event)) return;
     const action = this.options.keys.get(event.code);
-    if (action && action !== 'stop') this.handlers.onKeyAction(action, false);
+    if (action && action !== 'stop' && ABILITY_SLOTS[action] === undefined) {
+      this.handlers.onKeyAction(action, false);
+    }
   }
 
   private alreadyHandled(event: KeyboardEvent): boolean {
@@ -121,7 +144,9 @@ export class PlayerInput {
   private releaseAll(): void {
     this.moveHeld = false;
     for (const action of new Set(this.options.keys.values())) {
-      if (action !== 'stop') this.handlers.onKeyAction(action, false);
+      if (action !== 'stop' && ABILITY_SLOTS[action] === undefined) {
+        this.handlers.onKeyAction(action, false);
+      }
     }
   }
 }

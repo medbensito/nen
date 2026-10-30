@@ -20,7 +20,7 @@ Le Nen est une ressource. C'est la tension centrale du jeu : chaque capacité co
 | Coût | Chaque capacité a un coût fixe (voir le champion). Les attaques de base sont gratuites. |
 | En combat | Avoir infligé ou subi des dégâts d'une unité ennemie dans les 5 dernières secondes |
 | Régénération | 0 en combat ; 8 par seconde hors combat |
-| Fontaine | Régénère rapidement PV et Nen (10 % du maximum par seconde) |
+| Fontaine | Régénère rapidement PV et Nen (10 % du maximum par seconde) dans sa propre fontaine |
 
 **Épuisement.** Quand la jauge tombe à 0, le champion devient **épuisé** :
 - il subit 30 % de dégâts en plus ;
@@ -28,6 +28,8 @@ Le Nen est une ressource. C'est la tension centrale du jeu : chaque capacité co
 - l'état se lève quand la jauge remonte à 25 % du maximum.
 
 Comme la régénération est nulle en combat, un champion épuisé doit se désengager pour récupérer. C'est voulu : vider sa jauge est une décision risquée, pas un accident sans conséquence.
+
+Un lancer refusé (recharge, Nen insuffisant, épuisement, capacité pas encore débloquée, action en cours) ne consomme rien, et le HUD affiche la raison.
 
 ## 3. Spécialisations
 
@@ -64,11 +66,13 @@ Attaque de base : projectile à 1 600 unités/s, wind-up de 30 %. Les gains par 
 | A | Trait | Projectile en ligne droite (portée 900, vitesse 1 600) qui s'arrête au premier ennemi touché. 70 dégâts (+10 par niveau). | 30 | 4 s |
 | Z | Glissement | Dash de 350 unités vers le curseur. S'arrête contre un obstacle. | 25 | 10 s |
 | E | Orbe émis | Pose un orbe à l'emplacement visé (portée 600). Pendant 4 s, il tire toutes les 0,8 s sur l'ennemi le plus proche à moins de 500 unités, 25 dégâts par tir (+4 par niveau). Ses tirs sont des projectiles, donc déclenchent Aura détachée. | 50 | 12 s |
-| R | Décharge | Canalise 1 s, puis tire un rayon de 1 400 × 120 unités. Consomme **tout** le Nen restant (60 minimum requis) ; dégâts = 100 + 1,5 × Nen consommé. Laisse toujours le champion épuisé. Débloquée au niveau 6. | Tout | 60 s |
+| R | Décharge | Canalise 1 s sans bouger, puis tire un rayon de 1 400 × 120 unités qui touche tous les ennemis sur sa trajectoire. Consomme **tout** le Nen restant (60 minimum requis) ; dégâts = 100 + 1,5 × Nen consommé. Laisse toujours le champion épuisé. Un ordre pendant la canalisation l'annule sans coût. Débloquée au niveau 6 (au niveau 1 tant que les niveaux n'existent pas, jusqu'à M4). | Tout | 60 s |
+
+**Lancement** : rapide. La capacité part vers le curseur dès l'appui sur la touche, sans indicateur. Trait vole au-dessus des murs ; l'orbe ne peut pas être ciblé.
 
 ## 5. Combat
 
-- Dégâts subis = dégâts bruts × 100 / (100 + armure) × multiplicateurs (dont l'épuisement, ×1,3, à partir de M3).
+- Dégâts subis = dégâts bruts × 100 / (100 + armure) × multiplicateurs (dont l'épuisement, ×1,3).
 - La portée se mesure de bord à bord des deux corps.
 - Une attaque commence par un **wind-up** (30 % de la période pour Ressac), puis touche ou lance son projectile. Se déplacer pendant le wind-up annule l'attaque sans consommer son temps de recharge.
 - Les attaques à distance lancent un **projectile à tête chercheuse** : il touche toujours, sauf si la cible meurt avant.

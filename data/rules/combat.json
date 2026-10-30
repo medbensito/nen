@@ -3,5 +3,6 @@
   "respawn": {
     "base": 6,
     "perLevel": 1.5
-  }
+  },
+  "fountainRegen": 0.1
 }

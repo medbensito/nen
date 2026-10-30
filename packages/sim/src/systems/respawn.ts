@@ -21,6 +21,11 @@ export const respawnSystem: System = (state, ctx) => {
     entity.position.y = entity.respawn.home.y;
     if (entity.health) entity.health.current = entity.health.max;
     if (entity.attack) entity.attack.cooldownTicks = 0;
+    if (entity.nen) {
+      entity.nen.current = entity.nen.max;
+      entity.nen.exhausted = false;
+    }
+    if (entity.combatUntil !== undefined) entity.combatUntil = 0;
     ctx.events.push({ type: 'respawn', entityId: entity.id });
   }
 };

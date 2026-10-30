@@ -5,11 +5,10 @@ import { loadGameData, type RawDataFiles } from './loader';
 
 function validFiles(): FixtureFiles {
   const files = fixtureFiles();
-  files['locales/en.json'] = {
-    'map.test-arena.name': 'Test arena',
-    'champion.test-champion.name': 'Test champion',
-    'unit.test-dummy.name': 'Test dummy',
-  };
+  // Same keys as the French fixture locale, so the files are consistent.
+  files['locales/en.json'] = Object.fromEntries(
+    Object.keys(files['locales/fr.json'] ?? {}).map((key) => [key, `en:${key}`]),
+  );
   return files;
 }
 
@@ -151,6 +150,15 @@ describe('champions', () => {
         projectileSpeed: 20,
         projectileRadius: 5,
       },
+      nen: 200,
+      specialization: 'emission',
+      rule: {
+        kind: 'projectile-hit-refund',
+        name: 'rule.test-refund.name',
+        description: 'rule.test-refund.description',
+        share: 0.25,
+      },
+      abilities: ['test-shot', 'test-dash', 'test-orb', 'test-beam'],
     });
   });
 
@@ -189,10 +197,12 @@ describe('units and combat', () => {
   });
 
   it('compiles the combat rules', () => {
-    expect(loadGameData(validFiles()).combat).toEqual({
+    const files = withFields('rules/combat.json', { fountainRegen: 0.3 });
+    expect(loadGameData(files).combat).toEqual({
       armorScale: 100,
       respawnBaseTicks: 60,
       respawnPerLevelTicks: 30,
+      fountainRegenPerTick: 0.01,
     });
   });
 
@@ -227,8 +237,88 @@ describe('units and combat', () => {
   });
 });
 
+describe('nen and abilities', () => {
+  it('compiles the nen rules', () => {
+    expect(loadGameData(validFiles()).nen).toEqual({
+      combatTicks: 60,
+      regenOutOfCombatPerTick: 1,
+      regenInCombatPerTick: 0,
+      exhaustedDamageTakenMultiplier: 1.5,
+      exhaustionRecoverAt: 0.25,
+    });
+  });
+
+  it('compiles abilities: fixed or all-remaining costs, ticks and per-tick speeds', () => {
+    const { abilities } = loadGameData(validFiles());
+    expect(abilities['test-shot']).toMatchObject({
+      cost: { kind: 'fixed', amount: 30 },
+      cooldownTicks: 30,
+      effect: { type: 'skillshot', speed: 20, range: 400 },
+    });
+    expect(abilities['test-orb']?.effect).toMatchObject({
+      durationTicks: 60,
+      intervalTicks: 15,
+      shot: { speed: 30 },
+    });
+    expect(abilities['test-beam']).toMatchObject({
+      cost: { kind: 'all', minimum: 60 },
+      effect: { channelTicks: 30 },
+    });
+  });
+
+  it('requires the champion abilities to exist', () => {
+    const champion = validFiles()['champions/test-champion.json'] ?? {};
+    const abilities = [...(champion.abilities as string[])];
+    abilities[2] = 'missing';
+    expect(issuesOf(withFields('champions/test-champion.json', { abilities }))).toEqual([
+      expect.objectContaining({ path: 'abilities[2]' }),
+    ]);
+  });
+
+  it('requires exactly four abilities', () => {
+    expect(
+      issuesOf(withFields('champions/test-champion.json', { abilities: ['test-shot'] })),
+    ).toEqual([expect.objectContaining({ path: 'abilities' })]);
+  });
+
+  it('rejects an unknown effect type', () => {
+    const shot = validFiles()['abilities/test-shot.json'] ?? {};
+    expect(
+      issuesOf(
+        withFields('abilities/test-shot.json', {
+          effect: { ...(shot.effect as object), type: 'meteor' },
+        }),
+      ),
+    ).toEqual([expect.objectContaining({ file: 'abilities/test-shot.json', path: 'effect.type' })]);
+  });
+
+  it('requires a translated name for the specialization', () => {
+    const files = validFiles();
+    const fr = { ...files['locales/fr.json'] };
+    const en = { ...files['locales/en.json'] };
+    delete fr['specialization.emission.name'];
+    delete en['specialization.emission.name'];
+    files['locales/fr.json'] = fr;
+    files['locales/en.json'] = en;
+    expect(issuesOf(files)).toEqual([
+      expect.objectContaining({
+        file: 'champions/test-champion.json',
+        path: 'specialization.type',
+      }),
+    ]);
+  });
+});
+
 describe('input', () => {
-  const keys = { stop: 'KeyS', toggleCameraLock: 'KeyY', centerCamera: 'Space' };
+  const keys = {
+    ability1: 'KeyQ',
+    ability2: 'KeyW',
+    ability3: 'KeyE',
+    ability4: 'KeyR',
+    stop: 'KeyS',
+    toggleCameraLock: 'KeyY',
+    centerCamera: 'Space',
+  };
 
   it('loads key bindings and camera settings', () => {
     const data = loadGameData(validFiles());

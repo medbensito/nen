@@ -10,6 +10,20 @@
     "perSecond": 0.65,
     "range": 525,
     "windup": 0.3,
-    "projectile": { "speed": 1600, "radius": 8 }
-  }
+    "projectile": {
+      "speed": 1600,
+      "radius": 8
+    }
+  },
+  "nen": 200,
+  "specialization": {
+    "type": "emission",
+    "rule": {
+      "kind": "projectile-hit-refund",
+      "name": "rule.detached-aura.name",
+      "description": "rule.detached-aura.description",
+      "share": 0.25
+    }
+  },
+  "abilities": ["ressac-trait", "ressac-glissement", "ressac-orbe", "ressac-decharge"]
 }
