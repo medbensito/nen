@@ -5,7 +5,10 @@ import { loadGameData, type RawDataFiles } from './loader';
 
 function validFiles(): FixtureFiles {
   const files = fixtureFiles();
-  files['locales/en.json'] = { 'map.test-arena.name': 'Test arena' };
+  files['locales/en.json'] = {
+    'map.test-arena.name': 'Test arena',
+    'champion.test-champion.name': 'Test champion',
+  };
   return files;
 }
 
@@ -114,7 +117,7 @@ describe('loadGameData', () => {
 
   it('requires every language to translate the same keys', () => {
     const files = withFile('locales/fr.json', {
-      'map.test-arena.name': 'Arène de test',
+      ...validFiles()['locales/fr.json'],
       'hud.fps': 'FPS : {value}',
     });
     expect(issuesOf(files)).toEqual([
@@ -126,6 +129,30 @@ describe('loadGameData', () => {
     expect(issuesOf(withFields('maps/test-arena.json', { name: 'map.unknown.name' }))).toEqual([
       expect.objectContaining({ file: 'maps/test-arena.json', path: 'name' }),
     ]);
+  });
+});
+
+describe('champions', () => {
+  it('converts per-second rates to per-tick rates', () => {
+    const data = loadGameData(validFiles());
+    expect(data.champions['test-champion']).toEqual({
+      id: 'test-champion',
+      name: 'champion.test-champion.name',
+      radius: 30,
+      moveSpeedPerTick: 10,
+    });
+  });
+
+  it('requires the match champion to exist', () => {
+    expect(issuesOf(withFields('rules/match.json', { champion: 'nobody' }))).toEqual([
+      expect.objectContaining({ file: 'rules/match.json', path: 'champion' }),
+    ]);
+  });
+
+  it('requires a champion id to match its file name', () => {
+    expect(issuesOf(withFields('champions/test-champion.json', { id: 'other' }))).toContainEqual(
+      expect.objectContaining({ file: 'champions/test-champion.json', path: 'id' }),
+    );
   });
 });
 

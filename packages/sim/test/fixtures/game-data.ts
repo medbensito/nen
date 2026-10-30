@@ -7,11 +7,12 @@ export type FixtureFiles = Record<string, Record<string, unknown>>;
  * rebalancing the game must never break a rule test.
  *
  * Test arena: 800 × 600, a 100 × 300 wall in the middle, one fountain per side.
+ * Test champion: radius 30, 300 units per second (10 per tick at 30 ticks/s).
  */
 export function fixtureFiles(): FixtureFiles {
   return {
     'rules/simulation.json': { tickRate: 30, maxStepsPerFrame: 5 },
-    'rules/match.json': { map: 'test-arena' },
+    'rules/match.json': { map: 'test-arena', champion: 'test-champion', team: 'blue' },
     'maps/test-arena.json': {
       id: 'test-arena',
       name: 'map.test-arena.name',
@@ -24,7 +25,16 @@ export function fixtureFiles(): FixtureFiles {
         { team: 'red', fountain: { x: 740, y: 300 }, fountainRadius: 40 },
       ],
     },
-    'locales/fr.json': { 'map.test-arena.name': 'Arène de test' },
+    'champions/test-champion.json': {
+      id: 'test-champion',
+      name: 'champion.test-champion.name',
+      radius: 30,
+      moveSpeed: 300,
+    },
+    'locales/fr.json': {
+      'map.test-arena.name': 'Arène de test',
+      'champion.test-champion.name': 'Champion de test',
+    },
   };
 }
 

@@ -1,3 +1,5 @@
 {
-  "map": "lane"
+  "map": "lane",
+  "champion": "ressac",
+  "team": "blue"
 }

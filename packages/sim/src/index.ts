@@ -6,6 +6,7 @@ export * from './core/rng';
 export * from './core/simulation';
 export * from './core/types';
 export * from './core/vec2';
+export * from './schema/champion';
 export * from './schema/common';
 export * from './schema/errors';
 export * from './schema/loader';
