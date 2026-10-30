@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema, teamSchema } from './common';
+import { secondsToTicks } from './units';
 
 /** data/rules/simulation.json */
 export const simulationRulesSchema = z.strictObject({
@@ -26,3 +27,33 @@ export const matchRulesSchema = z.strictObject({
 });
 
 export type MatchRules = z.infer<typeof matchRulesSchema>;
+
+/** data/rules/combat.json */
+export const combatRulesSchema = z.strictObject({
+  /**
+   * Damage taken = raw damage × armorScale / (armorScale + armor). With 100,
+   * each point of armor adds 1 % of effective health.
+   */
+  armorScale: z.number().positive(),
+  /** Champion respawn delay in seconds: base + perLevel × level. */
+  respawn: z.strictObject({
+    base: z.number().nonnegative(),
+    perLevel: z.number().nonnegative(),
+  }),
+});
+
+export type CombatRulesDef = z.infer<typeof combatRulesSchema>;
+
+export interface CombatRules {
+  armorScale: number;
+  respawnBaseTicks: number;
+  respawnPerLevelTicks: number;
+}
+
+export function compileCombatRules(def: CombatRulesDef, tickRate: number): CombatRules {
+  return {
+    armorScale: def.armorScale,
+    respawnBaseTicks: secondsToTicks(def.respawn.base, tickRate),
+    respawnPerLevelTicks: secondsToTicks(def.respawn.perLevel, tickRate),
+  };
+}

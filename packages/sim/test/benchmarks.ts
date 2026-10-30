@@ -33,6 +33,7 @@ const LANE_LIKE_MAP: MapDef = {
     { x: 2850, y: 560, width: 140, height: 200 },
   ],
   bases: [],
+  units: [],
 };
 
 /** Scenarios measured by `pnpm bench` (runner: tools/bench.ts). */

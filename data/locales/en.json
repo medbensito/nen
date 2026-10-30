@@ -4,5 +4,6 @@
   "hud.camera.free": "Camera: free",
   "hud.camera.locked": "Camera: locked",
   "hud.fps": "FPS: {value}",
-  "map.lane.name": "Training lane"
+  "map.lane.name": "Training lane",
+  "unit.training-dummy.name": "Training dummy"
 }

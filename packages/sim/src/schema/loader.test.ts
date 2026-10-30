@@ -8,6 +8,7 @@ function validFiles(): FixtureFiles {
   files['locales/en.json'] = {
     'map.test-arena.name': 'Test arena',
     'champion.test-champion.name': 'Test champion',
+    'unit.test-dummy.name': 'Test dummy',
   };
   return files;
 }
@@ -133,13 +134,23 @@ describe('loadGameData', () => {
 });
 
 describe('champions', () => {
-  it('converts per-second rates to per-tick rates', () => {
+  it('converts per-second rates and durations to ticks', () => {
     const data = loadGameData(validFiles());
     expect(data.champions['test-champion']).toEqual({
       id: 'test-champion',
       name: 'champion.test-champion.name',
       radius: 30,
       moveSpeedPerTick: 10,
+      health: 500,
+      armor: 0,
+      attack: {
+        damage: 50,
+        range: 200,
+        periodTicks: 30,
+        windupTicks: 15,
+        projectileSpeed: 20,
+        projectileRadius: 5,
+      },
     });
   });
 
@@ -153,6 +164,66 @@ describe('champions', () => {
     expect(issuesOf(withFields('champions/test-champion.json', { id: 'other' }))).toContainEqual(
       expect.objectContaining({ file: 'champions/test-champion.json', path: 'id' }),
     );
+  });
+});
+
+describe('units and combat', () => {
+  it('compiles units, with optional respawn and retaliation', () => {
+    const data = loadGameData(validFiles());
+    expect(data.units['test-dummy']).toMatchObject({
+      health: 300,
+      armor: 50,
+      attack: { periodTicks: 30, windupTicks: 0, projectileSpeed: 0 },
+      respawnTicks: 60,
+      retaliationTicks: 90,
+    });
+
+    const plain = { ...validFiles()['units/test-dummy.json'] };
+    delete plain.respawnTime;
+    delete plain.retaliation;
+    const withoutOptions = loadGameData({ ...validFiles(), 'units/test-dummy.json': plain });
+    expect(withoutOptions.units['test-dummy']).toMatchObject({
+      respawnTicks: null,
+      retaliationTicks: null,
+    });
+  });
+
+  it('compiles the combat rules', () => {
+    expect(loadGameData(validFiles()).combat).toEqual({
+      armorScale: 100,
+      respawnBaseTicks: 60,
+      respawnPerLevelTicks: 30,
+    });
+  });
+
+  it('keeps the wind-up shorter than the attack period', () => {
+    const files = withFields('units/test-dummy.json', {
+      attack: { damage: 1, perSecond: 1, range: 1, windup: 1 },
+    });
+    expect(loadGameData(files).units['test-dummy']?.attack.windupTicks).toBe(29);
+  });
+
+  it('requires units placed on a map to exist', () => {
+    const map = validFiles()['maps/test-arena.json'] ?? {};
+    const files = withFields('maps/test-arena.json', {
+      units: [{ unit: 'ghost', team: 'red', position: { x: 100, y: 100 } }],
+    });
+    expect(map).toBeDefined();
+    expect(issuesOf(files)).toEqual([
+      expect.objectContaining({ file: 'maps/test-arena.json', path: 'units[0].unit' }),
+    ]);
+  });
+
+  it('rejects a unit placed inside an obstacle', () => {
+    const files = withFields('maps/test-arena.json', {
+      units: [{ unit: 'test-dummy', team: 'red', position: { x: 400, y: 300 } }],
+    });
+    expect(issuesOf(files)).toEqual([
+      expect.objectContaining({
+        path: 'units[0].position',
+        message: 'must not lie inside an obstacle',
+      }),
+    ]);
   });
 });
 

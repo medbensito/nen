@@ -1,0 +1,7 @@
+{
+  "armorScale": 100,
+  "respawn": {
+    "base": 6,
+    "perLevel": 1.5
+  }
+}
