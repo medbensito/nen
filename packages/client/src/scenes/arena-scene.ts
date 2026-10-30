@@ -13,6 +13,7 @@ import {
 import * as Phaser from 'phaser';
 import { createKeyMap } from '../input/key-bindings';
 import { PlayerInput } from '../input/player-input';
+import { AbilityEffects } from '../render/ability-effects';
 import { CameraRig, type CameraStatus } from '../render/camera-rig';
 import { ClickMarkers } from '../render/click-markers';
 import { DamageNumbers } from '../render/damage-numbers';
@@ -20,6 +21,7 @@ import { createMapView } from '../render/map-view';
 import { ProjectileViews } from '../render/projectile-views';
 import { pickEnemyAt } from '../render/target-picking';
 import { UnitViews } from '../render/unit-views';
+import { SIM_EVENTS } from '../sim-events';
 import { PICK_TOLERANCE_PX, THEME } from '../theme';
 
 export interface ArenaSceneDeps {
@@ -40,6 +42,7 @@ export class ArenaScene extends Phaser.Scene {
   private units: UnitViews | undefined;
   private projectiles: ProjectileViews | undefined;
   private damageNumbers: DamageNumbers | undefined;
+  private effects: AbilityEffects | undefined;
   private rig: CameraRig | undefined;
   private playerInput: PlayerInput | undefined;
   private hoveringEnemy = false;
@@ -68,6 +71,7 @@ export class ArenaScene extends Phaser.Scene {
     this.rig = rig;
     this.projectiles = new ProjectileViews(this);
     this.damageNumbers = new DamageNumbers(this, this.player.entityId);
+    this.effects = new AbilityEffects(this, sim.data);
 
     this.playerInput = new PlayerInput(
       this,
@@ -115,7 +119,10 @@ export class ArenaScene extends Phaser.Scene {
       this.projectiles?.capturePrevious(sim.state);
       sim.step();
       this.damageNumbers?.handle(sim.events, sim.state);
+      this.effects?.handle(sim.events);
+      if (sim.events.length > 0) this.game.events.emit(SIM_EVENTS, sim.events);
     }
+    this.effects?.render(sim.state);
     this.units?.render(sim.state, alpha);
     this.projectiles?.render(sim.state, alpha);
     this.rig?.update(this.focus(), this.pointerOnScreen(), elapsedMs / 1000);

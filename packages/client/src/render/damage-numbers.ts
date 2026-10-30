@@ -39,26 +39,32 @@ export class DamageNumbers {
 
   handle(events: readonly SimEvent[], state: DeepReadonly<GameState>): void {
     for (const event of events) {
-      if (event.type !== 'damage') continue;
-      const target = state.entities.find((entity) => entity.id === event.targetId);
-      const top = event.position.y - (target?.radius ?? 0) - 18;
-      const taken = event.targetId === this.playerChampionId;
-      this.show(event.position.x, top, Math.round(event.amount), taken);
+      if (event.type === 'damage') {
+        const target = state.entities.find((entity) => entity.id === event.targetId);
+        const top = event.position.y - (target?.radius ?? 0) - 18;
+        const taken = event.targetId === this.playerChampionId;
+        this.show(
+          event.position.x,
+          top,
+          String(Math.round(event.amount)),
+          taken ? THEME.damageTaken : THEME.damageDealt,
+        );
+      } else if (event.type === 'nen-refund') {
+        const caster = state.entities.find((entity) => entity.id === event.entityId);
+        if (!caster) continue;
+        const top = caster.position.y - caster.radius - 34;
+        this.show(caster.position.x, top, `+${Math.round(event.amount)}`, THEME.nenGain);
+      }
     }
   }
 
-  private show(x: number, y: number, amount: number, taken: boolean): void {
+  private show(x: number, y: number, label: string, color: string): void {
     const text = this.texts[this.next];
     if (!text) return;
     this.next = (this.next + 1) % this.texts.length;
 
     this.scene.tweens.killTweensOf(text);
-    text
-      .setText(String(amount))
-      .setColor(taken ? THEME.damageTaken : THEME.damageDealt)
-      .setPosition(x, y)
-      .setAlpha(1)
-      .setVisible(true);
+    text.setText(label).setColor(color).setPosition(x, y).setAlpha(1).setVisible(true);
     this.scene.tweens.add({
       targets: text,
       y: y - RISE,

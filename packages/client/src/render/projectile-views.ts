@@ -36,8 +36,7 @@ export class ProjectileViews {
       seen.add(projectile.id);
       let view = this.views.get(projectile.id);
       if (!view) {
-        const source = state.entities.find((entity) => entity.id === projectile.sourceId);
-        view = this.createView(projectile.position, projectile.radius, source?.team ?? 'neutral');
+        view = this.createView(projectile.position, projectile.radius, projectile.team);
         this.views.set(projectile.id, view);
       }
       view.dot.setPosition(
