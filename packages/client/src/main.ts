@@ -25,15 +25,15 @@ function boot(): void {
   // The client may use real randomness: the seed is the only thing it injects.
   const sim = createSimulation({ data, seed: Math.floor(Math.random() * 2 ** 32) });
   const cameraStatus: CameraStatus = { locked: data.input.camera.startLocked };
-  if (import.meta.env.DEV) installDebugHook(sim, cameraStatus);
 
-  new Phaser.Game({
+  const game = new Phaser.Game({
     type: Phaser.WEBGL,
     parent: 'game',
     backgroundColor: THEME.void,
     scale: { mode: Phaser.Scale.RESIZE, width: '100%', height: '100%' },
-    scene: [new ArenaScene({ sim, map, cameraStatus }), new HudScene({ t, cameraStatus })],
+    scene: [new ArenaScene({ sim, map, cameraStatus }), new HudScene({ sim, t, cameraStatus })],
   });
+  if (import.meta.env.DEV) installDebugHook(sim, cameraStatus, game);
 }
 
 /** Developer-facing: shows why the game could not start, typically invalid data. */

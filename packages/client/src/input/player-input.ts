@@ -7,6 +7,8 @@ export interface PlayerInputHandlers {
   readonly onCommand: (command: Command) => void;
   /** A move order was clicked (not repeated by holding): where to show feedback. */
   readonly onMoveClick: (target: Vec2) => void;
+  /** An attack order was clicked: which enemy, for feedback. */
+  readonly onAttackClick: (targetId: EntityId) => void;
   /** A non-simulation key action (camera), pressed or released. */
   readonly onKeyAction: (action: KeyAction, pressed: boolean) => void;
 }
@@ -16,11 +18,14 @@ export interface PlayerInputOptions {
   readonly keys: KeyMap;
   /** Milliseconds between move orders while the right button is held. */
   readonly moveRepeatMs: number;
+  /** The enemy under a screen point, if any: right click on it means attack. */
+  readonly pickEnemy: (screen: Readonly<Vec2>) => EntityId | null;
 }
 
 /**
- * Turns mouse and keyboard into commands. Right click: move there; holding it
- * keeps re-targeting the cursor. Keys are matched by physical position.
+ * Turns mouse and keyboard into commands. Right click on an enemy: attack it;
+ * elsewhere: move there. Holding the button repeats the order under the
+ * cursor. Keys are matched by physical position.
  */
 export class PlayerInput {
   private readonly scene: Phaser.Scene;
@@ -55,7 +60,7 @@ export class PlayerInput {
     this.sinceLastMoveMs += elapsedMs;
     if (this.sinceLastMoveMs >= this.options.moveRepeatMs) {
       this.sinceLastMoveMs = 0;
-      this.issueMove();
+      this.issueOrder();
     }
   }
 
@@ -63,19 +68,27 @@ export class PlayerInput {
     if (!pointer.rightButtonDown()) return;
     this.moveHeld = true;
     this.sinceLastMoveMs = 0;
-    this.handlers.onMoveClick(this.issueMove());
+    const order = this.issueOrder();
+    if (order.type === 'attack') this.handlers.onAttackClick(order.targetId);
+    else this.handlers.onMoveClick(order.target);
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
     if (pointer.rightButtonReleased()) this.moveHeld = false;
   }
 
-  private issueMove(): Vec2 {
+  private issueOrder(): { type: 'attack'; targetId: EntityId } | { type: 'move'; target: Vec2 } {
     const pointer = this.scene.input.activePointer;
+    const entityId = this.options.championId;
+    const targetId = this.options.pickEnemy({ x: pointer.x, y: pointer.y });
+    if (targetId !== null) {
+      this.handlers.onCommand({ type: 'attack', entityId, targetId });
+      return { type: 'attack', targetId };
+    }
     const world = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
     const target = { x: world.x, y: world.y };
-    this.handlers.onCommand({ type: 'move', entityId: this.options.championId, target });
-    return target;
+    this.handlers.onCommand({ type: 'move', entityId, target });
+    return { type: 'move', target };
   }
 
   private handleKeyDown(event: KeyboardEvent): void {

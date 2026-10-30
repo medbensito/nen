@@ -25,13 +25,13 @@ export class ClickMarkers {
     }
   }
 
-  show(at: Readonly<Vec2>): void {
+  show(at: Readonly<Vec2>, color: number = THEME.moveMarker): void {
     const ring = this.rings[this.next];
     if (!ring) return;
     this.next = (this.next + 1) % this.rings.length;
 
     this.scene.tweens.killTweensOf(ring);
-    ring.setPosition(at.x, at.y).setScale(1).setAlpha(1).setVisible(true);
+    ring.setStrokeStyle(3, color).setPosition(at.x, at.y).setScale(1).setAlpha(1).setVisible(true);
     this.scene.tweens.add({
       targets: ring,
       scale: 0.35,
