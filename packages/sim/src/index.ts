@@ -20,6 +20,7 @@ export * from './schema/rules';
 export * from './schema/unit';
 export * from './schema/units';
 export * from './state/game-state';
+export * from './state/progression';
 export * from './state/setup-match';
 export * from './systems';
 export * from './nav/astar';

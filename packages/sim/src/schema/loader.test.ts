@@ -197,7 +197,8 @@ describe('units and combat', () => {
   });
 
   it('compiles the combat rules', () => {
-    expect(loadGameData(validFiles()).combat).toEqual({
+    const files = withFields('rules/combat.json', { fountainRegen: 0.3 });
+    expect(loadGameData(files).combat).toEqual({
       armorScale: 100,
       respawnBaseTicks: 60,
       respawnPerLevelTicks: 30,

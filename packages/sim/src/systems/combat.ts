@@ -32,6 +32,8 @@ export const combatSystem: System = (state, ctx) => {
     const attack = entity.attack;
     if (!attack || !isAlive(entity)) continue;
     if (attack.cooldownTicks > 0) attack.cooldownTicks -= 1;
+    // Channelling or dashing: the target is kept, attacks wait.
+    if (entity.channel || entity.dash) continue;
 
     const target = attack.target === null ? undefined : findEntity(state, attack.target);
     if (!target || !isAlive(target) || !isHostile(entity, target)) {
@@ -77,8 +79,12 @@ function release(state: GameState, ctx: TickContext, attacker: Entity, target: E
   const dy = gap === 0 ? 0 : (target.position.y - attacker.position.y) / gap;
   state.projectiles.push({
     id: state.nextProjectileId,
+    kind: 'homing',
     sourceId: attacker.id,
+    team: attacker.team,
     targetId: target.id,
+    refundAmount: 0,
+    refundTurretId: null,
     position: {
       x: attacker.position.x + dx * attacker.radius,
       y: attacker.position.y + dy * attacker.radius,

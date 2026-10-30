@@ -13,8 +13,8 @@ export type FixtureFiles = Record<string, Record<string, unknown>>;
  * Test dummy (red) at (300, 80): radius 40, 300 health, 50 armor (takes 2/3
  *   of raw damage); instant attack 30 damage, 1 per second, range 250;
  *   respawns after 2 s, retaliates for 3 s.
- * Combat: armor scale 100; champion respawn 2 s + 1 s per level; fountain
- *   restores 1 % of max health and nen per tick.
+ * Combat: armor scale 100; champion respawn 2 s + 1 s per level; no fountain
+ *   regeneration unless a test turns it on.
  * Nen: 200 max; in combat for 60 ticks after damage; 1 nen per tick out of
  *   combat, none in combat; exhausted at 0 (×1.5 damage taken) until 50.
  * Abilities (rule: hits refund 25 % of the cost, once per cast):
@@ -32,7 +32,9 @@ export function fixtureFiles(): FixtureFiles {
     'rules/combat.json': {
       armorScale: 100,
       respawn: { base: 2, perLevel: 1 },
-      fountainRegen: 0.3,
+      // Off by default: the champion spawns in its fountain, which would heal
+      // it during rule tests. Fountain tests turn it on.
+      fountainRegen: 0,
     },
     'rules/nen.json': {
       combatDuration: 2,

@@ -1,12 +1,10 @@
 import type { AttackStats } from '../schema/attack';
 import type { GameData } from '../schema/loader';
 import { spawnEntity, type Attack, type GameState, type PlayerId } from './game-state';
+import { championLevel } from './progression';
 
 /** The only player of the solo MVP. A server will assign ids per connection. */
 export const LOCAL_PLAYER_ID: PlayerId = 1;
-
-/** Levels arrive in M4; until then every champion is level 1. */
-const CHAMPION_LEVEL = 1;
 
 /**
  * Initial state of a match: the player's champion at its team's fountain,
@@ -22,6 +20,14 @@ export function setupMatch(state: GameState, data: GameData): void {
     throw new Error(`Invalid match setup: ${JSON.stringify(match)}`);
   }
 
+  const level = championLevel({
+    id: 0,
+    kind: 'champion',
+    defId: champion.id,
+    team: match.team,
+    position: base.fountain,
+    radius: champion.radius,
+  });
   const entity = spawnEntity(state, {
     kind: 'champion',
     defId: champion.id,
@@ -34,8 +40,12 @@ export function setupMatch(state: GameState, data: GameData): void {
     attack: createAttack(champion.attack),
     respawn: {
       home: base.fountain,
-      delayTicks: combat.respawnBaseTicks + combat.respawnPerLevelTicks * CHAMPION_LEVEL,
+      delayTicks: combat.respawnBaseTicks + combat.respawnPerLevelTicks * level,
     },
+    nen: { current: champion.nen, max: champion.nen, exhausted: false },
+    combatUntil: 0,
+    abilities: champion.abilities.map((abilityId) => ({ abilityId, cooldownTicks: 0 })),
+    specializationRule: { kind: champion.rule.kind, share: champion.rule.share },
   });
   state.players.push({ id: LOCAL_PLAYER_ID, team: match.team, entityId: entity.id });
 

@@ -13,9 +13,20 @@ import { cancelAttack } from './damage';
  */
 export const ordersSystem: System = (state, ctx) => {
   for (const command of ctx.commands) {
+    if (command.type === 'cast') continue; // handled by the abilities system
     const entity = findEntity(state, command.entityId);
     if (!entity || !isAlive(entity)) continue;
     const { movement } = entity;
+
+    // Any new order interrupts a channel, at no cost.
+    if (entity.channel) {
+      ctx.events.push({
+        type: 'channel-cancelled',
+        entityId: entity.id,
+        slot: entity.channel.slot,
+      });
+      delete entity.channel;
+    }
 
     switch (command.type) {
       case 'stop':

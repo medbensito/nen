@@ -1,13 +1,16 @@
 import type { TickContext } from '../core/simulation';
 import type { Entity, EntityId, GameState } from '../state/game-state';
-import { isAlive } from '../state/game-state';
+import { findEntity, isAlive } from '../state/game-state';
 
 /** Damage left after armor: raw × scale / (scale + armor). Negative armor counts as none. */
 export function mitigatedDamage(raw: number, armor: number, armorScale: number): number {
   return (raw * armorScale) / (armorScale + Math.max(0, armor));
 }
 
-/** Applies a hit: armor, health, retaliation, and death at 0 health. */
+/**
+ * Applies a hit: armor, exhaustion, health, combat timers, retaliation, and
+ * death at 0 health.
+ */
 export function dealDamage(
   state: GameState,
   ctx: TickContext,
@@ -18,8 +21,19 @@ export function dealDamage(
   const health = target.health;
   if (!health || !isAlive(target)) return;
 
-  const amount = mitigatedDamage(raw, target.armor ?? 0, ctx.data.combat.armorScale);
+  const { nen: nenRules, combat } = ctx.data;
+  const exhausted = target.nen?.exhausted === true;
+  const amount =
+    mitigatedDamage(raw, target.armor ?? 0, combat.armorScale) *
+    (exhausted ? nenRules.exhaustedDamageTakenMultiplier : 1);
   health.current = Math.max(0, health.current - amount);
+
+  // Both sides of a fight count as in combat, which pauses nen regeneration.
+  const combatUntil = ctx.tick + nenRules.combatTicks;
+  if (target.combatUntil !== undefined) target.combatUntil = combatUntil;
+  const source = findEntity(state, sourceId);
+  if (source?.combatUntil !== undefined) source.combatUntil = combatUntil;
+
   ctx.events.push({
     type: 'damage',
     sourceId,
@@ -48,6 +62,8 @@ export function kill(_state: GameState, ctx: TickContext, entity: Entity): void 
   if (entity.movement) entity.movement.path = [];
   if (entity.attack) cancelAttack(entity, { refundWindup: false });
   if (entity.retaliation) entity.retaliation.targetId = null;
+  delete entity.channel;
+  delete entity.dash;
   entity.deadUntil = ctx.tick + (entity.respawn?.delayTicks ?? 0);
 }
 
