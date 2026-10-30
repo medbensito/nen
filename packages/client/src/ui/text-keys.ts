@@ -7,4 +7,5 @@ export const TEXT = {
   hudFps: 'hud.fps',
   cameraLocked: 'hud.camera.locked',
   cameraFree: 'hud.camera.free',
+  respawnIn: 'hud.respawn-in',
 } as const;

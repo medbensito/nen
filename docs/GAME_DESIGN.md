@@ -50,9 +50,11 @@ Nom de travail, original. Émetteur à distance moyenne qui gère son Nen en vis
 
 **Statistiques de base** (gain par niveau entre parenthèses)
 
-| PV | Dégâts d'attaque | Vitesse d'attaque | Portée | Armure | Vitesse |
-|---|---|---|---|---|---|
-| 560 (+90) | 52 (+3) | 0,65 / s | 525 | 22 (+4) | 330 |
+| PV | Dégâts d'attaque | Vitesse d'attaque | Portée | Armure | Vitesse | Rayon |
+|---|---|---|---|---|---|---|
+| 560 (+90) | 52 (+3) | 0,65 / s | 525 | 22 (+4) | 330 | 35 |
+
+Attaque de base : projectile à 1 600 unités/s, wind-up de 30 %. Les gains par niveau arrivent en M4.
 
 **Capacités**
 
@@ -66,9 +68,24 @@ Nom de travail, original. Émetteur à distance moyenne qui gère son Nen en vis
 
 ## 5. Combat
 
-- Dégâts subis = dégâts bruts × 100 / (100 + armure) × multiplicateurs (dont l'épuisement, ×1,3).
-- Réapparition à la fontaine après 6 s + 1,5 s par niveau du champion.
+- Dégâts subis = dégâts bruts × 100 / (100 + armure) × multiplicateurs (dont l'épuisement, ×1,3, à partir de M3).
+- La portée se mesure de bord à bord des deux corps.
+- Une attaque commence par un **wind-up** (30 % de la période pour Ressac), puis touche ou lance son projectile. Se déplacer pendant le wind-up annule l'attaque sans consommer son temps de recharge.
+- Les attaques à distance lancent un **projectile à tête chercheuse** : il touche toujours, sauf si la cible meurt avant.
+- **Pas d'attaque automatique** : le champion n'attaque que sur clic droit sur un ennemi.
+- Réapparition à la fontaine après 6 s + 1,5 s par niveau du champion (7,5 s au niveau 1).
 - Armure minimale : 0 dans le MVP (pas de réduction d'armure).
+- Les dégâts s'affichent en chiffres flottants : jaunes pour les dégâts infligés, rouges pour ceux que subit le champion du joueur.
+
+### Mannequin d'entraînement
+
+Placé dans la lane (camp Rouge), il ne bouge jamais. Il riposte contre son dernier agresseur tant que celui-ci est à portée, pendant 4 s après le dernier coup reçu. Il réapparaît 6 s après sa mort.
+
+| PV | Armure | Dégâts | Vitesse d'attaque | Portée | Projectile |
+|---|---|---|---|---|---|
+| 1 500 | 10 | 35 | 0,8 / s | 550 | 1 200 unités/s |
+
+Face à lui, Ressac (environ 31 dégâts par seconde après armure) perd le duel s'il reste sur place (le mannequin lui inflige environ 23 dégâts par seconde, pour 560 PV contre 1 500) : c'est voulu, pour pouvoir tester la mort et la réapparition à la main.
 
 ## 6. Sbires, tours, base
 

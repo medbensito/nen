@@ -15,6 +15,11 @@ export const THEME = {
   fountainAlpha: 0.16,
   unitOutline: 0x0b0d12,
   moveMarker: 0x7dffb2,
+  attackMarker: 0xff6b5e,
+  healthBarBackground: 0x0b0d12,
+  projectileGlow: 0xffffff,
+  damageDealt: '#ffe28a',
+  damageTaken: '#ff8a7a',
   debugPath: 0x7dffb2,
   hudText: '#9fb3c8',
 } as const;
@@ -30,9 +35,24 @@ export const DEPTH = {
   ground: 0,
   markers: 10,
   units: 20,
-  debug: 30,
+  bars: 25,
+  projectiles: 30,
+  floatingText: 40,
+  debug: 50,
   hud: 1000,
 } as const;
+
+export const HEALTH_BAR = {
+  height: 6,
+  minWidth: 44,
+  /** Added to the body diameter. */
+  extraWidth: 10,
+  /** World units between the top of the body and the bar. */
+  gap: 12,
+} as const;
+
+/** Screen pixels around a unit's body that still count as clicking it. */
+export const PICK_TOLERANCE_PX = 8;
 
 /** World units the camera may show beyond the map edges. */
 export const CAMERA_BOUNDS_PADDING = 300;

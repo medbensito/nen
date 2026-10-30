@@ -6,6 +6,7 @@ import {
   type EntityId,
   type FixedStepClock,
   type MapDef,
+  type Player,
   type Simulation,
   type Vec2,
 } from '@nen/sim';
@@ -14,9 +15,12 @@ import { createKeyMap } from '../input/key-bindings';
 import { PlayerInput } from '../input/player-input';
 import { CameraRig, type CameraStatus } from '../render/camera-rig';
 import { ClickMarkers } from '../render/click-markers';
+import { DamageNumbers } from '../render/damage-numbers';
 import { createMapView } from '../render/map-view';
+import { ProjectileViews } from '../render/projectile-views';
+import { pickEnemyAt } from '../render/target-picking';
 import { UnitViews } from '../render/unit-views';
-import { THEME } from '../theme';
+import { PICK_TOLERANCE_PX, THEME } from '../theme';
 
 export interface ArenaSceneDeps {
   readonly sim: Simulation;
@@ -32,10 +36,13 @@ export interface ArenaSceneDeps {
 export class ArenaScene extends Phaser.Scene {
   private readonly deps: ArenaSceneDeps;
   private readonly clock: FixedStepClock;
-  private readonly championId: EntityId;
-  private views: UnitViews | undefined;
+  private readonly player: DeepReadonly<Player>;
+  private units: UnitViews | undefined;
+  private projectiles: ProjectileViews | undefined;
+  private damageNumbers: DamageNumbers | undefined;
   private rig: CameraRig | undefined;
   private playerInput: PlayerInput | undefined;
+  private hoveringEnemy = false;
 
   constructor(deps: ArenaSceneDeps) {
     super('arena');
@@ -44,7 +51,7 @@ export class ArenaScene extends Phaser.Scene {
     this.clock = createFixedStepClock(tickRate, maxStepsPerFrame);
     const player = deps.sim.state.players.find((candidate) => candidate.id === LOCAL_PLAYER_ID);
     if (!player) throw new Error('The match has no local player.');
-    this.championId = player.entityId;
+    this.player = player;
   }
 
   create(): void {
@@ -54,22 +61,29 @@ export class ArenaScene extends Phaser.Scene {
     createMapView(this, map);
     this.cameras.main.setBackgroundColor(THEME.void);
 
-    const views = new UnitViews(this, { showPaths: import.meta.env.DEV });
+    const units = new UnitViews(this, { showPaths: import.meta.env.DEV });
     const rig = new CameraRig(this.cameras.main, camera, map, cameraStatus);
     const markers = new ClickMarkers(this);
-    this.views = views;
+    this.units = units;
     this.rig = rig;
+    this.projectiles = new ProjectileViews(this);
+    this.damageNumbers = new DamageNumbers(this, this.player.entityId);
 
     this.playerInput = new PlayerInput(
       this,
       {
-        championId: this.championId,
+        championId: this.player.entityId,
         keys: createKeyMap(bindings),
         moveRepeatMs: bindings.moveRepeatInterval * 1000,
+        pickEnemy: (screen) => this.enemyAtScreen(screen),
       },
       {
         onCommand: (command) => sim.enqueue(command),
         onMoveClick: (target) => markers.show(target),
+        onAttackClick: (targetId) => {
+          const position = units.renderedPosition(targetId);
+          if (position) markers.show(position, THEME.attackMarker);
+        },
         onKeyAction: (action, pressed) => {
           if (action === 'toggleCameraLock' && pressed) rig.toggleLock();
           if (action === 'centerCamera') rig.setCentering(pressed);
@@ -83,7 +97,7 @@ export class ArenaScene extends Phaser.Scene {
     );
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
 
-    views.render(sim.state, 0);
+    units.render(sim.state, 0);
     rig.snapTo(this.focus());
   }
 
@@ -97,20 +111,42 @@ export class ArenaScene extends Phaser.Scene {
     this.playerInput?.update(elapsedMs);
     const { steps, alpha } = advanceClock(this.clock, elapsedMs);
     for (let i = 0; i < steps; i++) {
-      this.views?.capturePrevious(sim.state);
+      this.units?.capturePrevious(sim.state);
+      this.projectiles?.capturePrevious(sim.state);
       sim.step();
+      this.damageNumbers?.handle(sim.events, sim.state);
     }
-    this.views?.render(sim.state, alpha);
+    this.units?.render(sim.state, alpha);
+    this.projectiles?.render(sim.state, alpha);
     this.rig?.update(this.focus(), this.pointerOnScreen(), elapsedMs / 1000);
+    this.updateCursor();
+  }
+
+  private enemyAtScreen(screen: Readonly<Vec2>): EntityId | null {
+    const camera = this.cameras.main;
+    const world = camera.getWorldPoint(screen.x, screen.y);
+    return pickEnemyAt(
+      this.deps.sim.state,
+      this.player.team,
+      { x: world.x, y: world.y },
+      PICK_TOLERANCE_PX / camera.zoom,
+    );
+  }
+
+  private updateCursor(): void {
+    const pointer = this.pointerOnScreen();
+    const hovering = pointer !== null && this.enemyAtScreen(pointer) !== null;
+    if (hovering === this.hoveringEnemy) return;
+    this.hoveringEnemy = hovering;
+    this.input.setDefaultCursor(hovering ? 'crosshair' : 'default');
   }
 
   /** Where the camera looks when it follows: the champion as drawn this frame. */
   private focus(): Readonly<Vec2> {
-    const drawn = this.views?.renderedPosition(this.championId);
+    const championId = this.player.entityId;
+    const drawn = this.units?.renderedPosition(championId);
     if (drawn) return drawn;
-    const entity = this.deps.sim.state.entities.find(
-      (candidate) => candidate.id === this.championId,
-    );
+    const entity = this.deps.sim.state.entities.find((candidate) => candidate.id === championId);
     return entity?.position ?? { x: this.deps.map.width / 2, y: this.deps.map.height / 2 };
   }
 

@@ -10,7 +10,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | Fait (tag `m1`) |
-| M2 | Combat de base | À faire |
+| M2 | Combat de base | Fait (tag `m2`) |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
 | M5 | Boucle de partie complète | À faire |
@@ -59,12 +59,14 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 - Barres de vie, mort, réapparition à la fontaine après un délai défini en données.
 - Mannequin d'entraînement dans la lane.
 
+Réponses prises en compte : le mannequin riposte, pas d'attaque automatique, chiffres de dégâts flottants.
+
 **Critères d'acceptation**
-- [ ] Les dégâts suivent la formule documentée dans `docs/GAME_DESIGN.md`, armure comprise. (auto)
-- [ ] La cadence est respectée : N attaques en T secondes selon la vitesse d'attaque. (auto)
-- [ ] Hors de portée, le champion poursuit puis attaque dès qu'il est à portée. (auto)
-- [ ] À 0 PV, l'unité meurt ; le champion réapparaît à la fontaine après le délai lu dans les données. (auto)
-- [ ] Attaquer le mannequin est lisible : barres, impacts, mort, réapparition. (manuel)
+- [x] Les dégâts suivent la formule documentée dans `docs/GAME_DESIGN.md`, armure comprise. (auto : `systems/damage.test.ts`, `systems/combat.test.ts`)
+- [x] La cadence est respectée : N attaques en T secondes selon la vitesse d'attaque. (auto : `systems/combat.test.ts`, 1 et 2 attaques/s)
+- [x] Hors de portée, le champion poursuit puis attaque dès qu'il est à portée. (auto : `systems/combat.test.ts`)
+- [x] À 0 PV, l'unité meurt ; le champion réapparaît à la fontaine après le délai lu dans les données. (auto : `systems/respawn.test.ts`)
+- [x] Attaquer le mannequin est lisible : barres, impacts, mort, réapparition. (manuel — validé par le porteur du projet ; couvert aussi par `e2e/combat.spec.ts`)
 
 ## M3 — Nen et capacités
 

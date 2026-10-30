@@ -1,0 +1,16 @@
+{
+  "id": "training-dummy",
+  "name": "unit.training-dummy.name",
+  "radius": 45,
+  "health": 1500,
+  "armor": 10,
+  "attack": {
+    "damage": 35,
+    "perSecond": 0.8,
+    "range": 550,
+    "windup": 0.25,
+    "projectile": { "speed": 1200, "radius": 10 }
+  },
+  "respawnTime": 6,
+  "retaliation": { "duration": 4 }
+}

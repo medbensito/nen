@@ -4,6 +4,7 @@ import { buildNavGrid } from '../src/nav/nav-grid';
 import { findPath } from '../src/nav/pathfinding';
 import type { MapDef } from '../src/schema/map';
 import { spawnEntity } from '../src/state/game-state';
+import { createAttack } from '../src/state/setup-match';
 import { fixtureGameData } from './fixtures/game-data';
 import { jitter, spawnAtStart } from './fixtures/systems';
 
@@ -33,6 +34,7 @@ const LANE_LIKE_MAP: MapDef = {
     { x: 2850, y: 560, width: 140, height: 200 },
   ],
   bases: [],
+  units: [],
 };
 
 /** Scenarios measured by `pnpm bench` (runner: tools/bench.ts). */
@@ -67,10 +69,40 @@ export const BENCHMARKS: readonly Benchmark[] = [
             );
             spawnEntity(state, {
               kind: 'walker',
+              defId: 'walker',
               team: 'blue',
               position: { x: 60, y: 300 },
               radius: 30,
               movement: { speed: 10, path },
+            });
+          }
+        },
+      });
+      return () => sim.step();
+    },
+  },
+  {
+    name: 'sim.step, 50 vs 50 units fighting with projectiles',
+    budgetMs: 2,
+    setup: () => {
+      const data = fixtureGameData();
+      const attack = data.champions['test-champion']?.attack;
+      if (!attack) throw new Error('fixture champion missing');
+      const sim = createSimulation({
+        data,
+        seed: 1,
+        setup: (state) => {
+          for (let i = 0; i < 100; i++) {
+            const blue = i % 2 === 0;
+            spawnEntity(state, {
+              kind: 'unit',
+              defId: 'fighter',
+              team: blue ? 'blue' : 'red',
+              position: { x: blue ? 150 : 300, y: 40 + (i >> 1) * 10 },
+              radius: 10,
+              health: { current: 1e9, max: 1e9 },
+              armor: 10,
+              attack: { ...createAttack(attack), target: blue ? i + 2 : i },
             });
           }
         },

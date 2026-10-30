@@ -4,5 +4,7 @@
   "hud.camera.free": "Caméra : libre",
   "hud.camera.locked": "Caméra : verrouillée",
   "hud.fps": "FPS : {value}",
-  "map.lane.name": "Lane d'entraînement"
+  "hud.respawn-in": "Réapparition dans {seconds} s",
+  "map.lane.name": "Lane d'entraînement",
+  "unit.training-dummy.name": "Mannequin d'entraînement"
 }

@@ -14,6 +14,7 @@ function gridWith(obstacles: MapDef['obstacles']) {
       navCellSize: 10,
       obstacles,
       bases: [],
+      units: [],
     },
     1,
   );

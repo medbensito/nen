@@ -1,15 +1,30 @@
-import type { DeepReadonly, Entity, EntityId, GameState, Vec2 } from '@nen/sim';
+import {
+  isAlive,
+  type DeepReadonly,
+  type Entity,
+  type EntityId,
+  type GameState,
+  type Vec2,
+} from '@nen/sim';
 import type * as Phaser from 'phaser';
-import { DEPTH, THEME } from '../theme';
+import { DEPTH, HEALTH_BAR, THEME } from '../theme';
+
+interface HealthBarView {
+  readonly background: Phaser.GameObjects.Rectangle;
+  readonly fill: Phaser.GameObjects.Rectangle;
+  readonly width: number;
+}
 
 interface UnitView {
   readonly body: Phaser.GameObjects.Arc;
   readonly nose: Phaser.GameObjects.Arc;
+  readonly bar: HealthBarView | undefined;
   /** Position at the previous tick, for interpolation. */
   readonly previous: Vec2;
   /** Position drawn this frame. */
   readonly rendered: Vec2;
   facing: number;
+  wasAlive: boolean;
 }
 
 const NOSE_OFFSET = 0.62;
@@ -17,7 +32,8 @@ const NOSE_SIZE = 0.28;
 
 /**
  * Draws entities from the simulation state, interpolated between the last two
- * ticks so motion stays smooth at any frame rate. Read-only on the state.
+ * ticks so motion stays smooth at any frame rate. Dead entities are hidden.
+ * Read-only on the state.
  */
 export class UnitViews {
   private readonly scene: Phaser.Scene;
@@ -48,6 +64,17 @@ export class UnitViews {
     for (const entity of state.entities) {
       seen.add(entity.id);
       const view = this.views.get(entity.id) ?? this.createView(entity);
+      const alive = entity.health === undefined || isAlive(entity);
+
+      // A respawn is a jump, not a move: do not interpolate across the map.
+      if (alive && !view.wasAlive) {
+        view.previous.x = entity.position.x;
+        view.previous.y = entity.position.y;
+      }
+      view.wasAlive = alive;
+      this.setVisible(view, alive);
+      if (!alive) continue;
+
       const x = view.previous.x + (entity.position.x - view.previous.x) * alpha;
       const y = view.previous.y + (entity.position.y - view.previous.y) * alpha;
       view.rendered.x = x;
@@ -61,13 +88,13 @@ export class UnitViews {
         x + Math.cos(view.facing) * entity.radius * NOSE_OFFSET,
         y + Math.sin(view.facing) * entity.radius * NOSE_OFFSET,
       );
+      this.placeBar(view, entity, x, y);
       this.drawPath(view.rendered, entity);
     }
 
     for (const [id, view] of this.views) {
       if (seen.has(id)) continue;
-      view.body.destroy();
-      view.nose.destroy();
+      this.destroyView(view);
       this.views.delete(id);
     }
   }
@@ -87,9 +114,55 @@ export class UnitViews {
     const nose = this.scene.add
       .circle(x, y, entity.radius * NOSE_SIZE, THEME.unitOutline, 0.85)
       .setDepth(DEPTH.units);
-    const view: UnitView = { body, nose, previous: { x, y }, rendered: { x, y }, facing: 0 };
+    const view: UnitView = {
+      body,
+      nose,
+      bar: entity.health ? this.createBar(entity) : undefined,
+      previous: { x, y },
+      rendered: { x, y },
+      facing: 0,
+      wasAlive: true,
+    };
     this.views.set(entity.id, view);
     return view;
+  }
+
+  private createBar(entity: DeepReadonly<Entity>): HealthBarView {
+    const width = Math.max(HEALTH_BAR.minWidth, entity.radius * 2 + HEALTH_BAR.extraWidth);
+    const background = this.scene.add
+      .rectangle(0, 0, width + 2, HEALTH_BAR.height + 2, THEME.healthBarBackground)
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH.bars);
+    const fill = this.scene.add
+      .rectangle(0, 0, width, HEALTH_BAR.height, THEME.team[entity.team])
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH.bars);
+    return { background, fill, width };
+  }
+
+  private placeBar(view: UnitView, entity: DeepReadonly<Entity>, x: number, y: number): void {
+    const { bar } = view;
+    const health = entity.health;
+    if (!bar || !health) return;
+    const left = x - bar.width / 2;
+    const top = y - entity.radius - HEALTH_BAR.gap;
+    bar.background.setPosition(left - 1, top);
+    bar.fill.setPosition(left, top);
+    bar.fill.setScale(Math.max(0, Math.min(1, health.current / health.max)), 1);
+  }
+
+  private setVisible(view: UnitView, visible: boolean): void {
+    view.body.setVisible(visible);
+    view.nose.setVisible(visible);
+    view.bar?.background.setVisible(visible);
+    view.bar?.fill.setVisible(visible);
+  }
+
+  private destroyView(view: UnitView): void {
+    view.body.destroy();
+    view.nose.destroy();
+    view.bar?.background.destroy();
+    view.bar?.fill.destroy();
   }
 
   private drawPath(from: Readonly<Vec2>, entity: DeepReadonly<Entity>): void {

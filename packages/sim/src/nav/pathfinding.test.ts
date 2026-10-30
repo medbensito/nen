@@ -14,6 +14,7 @@ const arena: MapDef = {
   navCellSize: 25,
   obstacles: [{ x: 350, y: 150, width: 100, height: 300 }],
   bases: [],
+  units: [],
 };
 const CLEARANCE = 30;
 const grid = buildNavGrid(arena, CLEARANCE);

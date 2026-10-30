@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createGameState, findEntity, removeEntity, spawnEntity } from './game-state';
 
-const dummy = { kind: 'dummy', team: 'neutral', position: { x: 0, y: 0 }, radius: 10 } as const;
+const dummy = {
+  kind: 'dummy',
+  defId: 'dummy',
+  team: 'neutral',
+  position: { x: 0, y: 0 },
+  radius: 10,
+} as const;
 
 describe('game state', () => {
   it('assigns growing ids and keeps entities sorted by id', () => {

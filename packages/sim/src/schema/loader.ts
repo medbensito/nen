@@ -12,11 +12,15 @@ import {
 import { localeSchema, type Locale } from './locale';
 import { checkMap, mapSchema, type MapDef } from './map';
 import {
+  combatRulesSchema,
+  compileCombatRules,
   matchRulesSchema,
   simulationRulesSchema,
+  type CombatRules,
   type MatchRules,
   type SimulationRules,
 } from './rules';
+import { compileUnit, unitSchema, type Unit } from './unit';
 
 /**
  * Raw content of the data/ folder: relative path (forward slashes) → parsed JSON.
@@ -29,9 +33,11 @@ export type RawDataFiles = Readonly<Record<string, unknown>>;
 export type GameData = DeepReadonly<{
   simulation: SimulationRules;
   match: MatchRules;
+  combat: CombatRules;
   input: { bindings: InputBindings; camera: CameraSettings };
   maps: Record<string, MapDef>;
   champions: Record<string, Champion>;
+  units: Record<string, Unit>;
   /** Language code (`fr`, `en`) → translations. */
   locales: Record<string, Locale>;
 }>;
@@ -39,10 +45,11 @@ export type GameData = DeepReadonly<{
 const ID = '[a-z0-9]+(?:-[a-z0-9]+)*';
 const MAP_FILE = new RegExp(`^maps/(${ID})\\.json$`);
 const CHAMPION_FILE = new RegExp(`^champions/(${ID})\\.json$`);
+const UNIT_FILE = new RegExp(`^units/(${ID})\\.json$`);
 const LOCALE_FILE = /^locales\/([a-z]{2})\.json$/;
 const EXPECTED_FILES =
-  'rules/simulation.json, rules/match.json, input/bindings.json, input/camera.json, ' +
-  'maps/<id>.json, champions/<id>.json, locales/<lang>.json';
+  'rules/simulation.json, rules/match.json, rules/combat.json, input/bindings.json, ' +
+  'input/camera.json, maps/<id>.json, champions/<id>.json, units/<id>.json, locales/<lang>.json';
 
 interface LocaleReference {
   readonly file: string;
@@ -61,10 +68,12 @@ export function loadGameData(files: RawDataFiles): GameData {
 
   const simulation = reader.single('rules/simulation.json', simulationRulesSchema);
   const match = reader.single('rules/match.json', matchRulesSchema);
+  const combat = reader.single('rules/combat.json', combatRulesSchema);
   const bindings = reader.single('input/bindings.json', inputBindingsSchema);
   const camera = reader.single('input/camera.json', cameraSettingsSchema);
   const maps = reader.collection(MAP_FILE, mapSchema, { idMatchesFileName: true });
   const champions = reader.collection(CHAMPION_FILE, championSchema, { idMatchesFileName: true });
+  const units = reader.collection(UNIT_FILE, unitSchema, { idMatchesFileName: true });
   const locales = reader.collection(LOCALE_FILE, localeSchema);
   reader.rejectUnclaimedFiles();
 
@@ -74,6 +83,12 @@ export function loadGameData(files: RawDataFiles): GameData {
   for (const { file, value: map } of maps.values()) {
     checkMap(map, (path, message) => reader.report(file, path, message));
     reader.reference(file, 'name', map.name);
+    map.units.forEach((placed, index) =>
+      reader.requireEntry(file, `units[${index}].unit`, placed.unit, units, 'units'),
+    );
+  }
+  for (const { file, value: unit } of units.values()) {
+    reader.reference(file, 'name', unit.name);
   }
   for (const { file, value: champion } of champions.values()) {
     reader.reference(file, 'name', champion.name);
@@ -95,6 +110,7 @@ export function loadGameData(files: RawDataFiles): GameData {
     reader.issues.length > 0 ||
     simulation === undefined ||
     match === undefined ||
+    combat === undefined ||
     bindings === undefined ||
     camera === undefined
   ) {
@@ -103,10 +119,14 @@ export function loadGameData(files: RawDataFiles): GameData {
   return {
     simulation,
     match,
+    combat: compileCombatRules(combat, simulation.tickRate),
     input: { bindings, camera },
     maps: Object.fromEntries([...maps].map(([id, { value }]) => [id, value])),
     champions: Object.fromEntries(
       [...champions].map(([id, { value }]) => [id, compileChampion(value, simulation.tickRate)]),
+    ),
+    units: Object.fromEntries(
+      [...units].map(([id, { value }]) => [id, compileUnit(value, simulation.tickRate)]),
     ),
     locales: localeValues,
   };

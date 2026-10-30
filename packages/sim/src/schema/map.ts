@@ -9,6 +9,14 @@ import {
   teamSchema,
 } from './common';
 
+/** A unit standing on the map from the start, e.g. the training dummy. */
+const placedUnitSchema = z.strictObject({
+  /** Id from data/units/. */
+  unit: idSchema,
+  team: teamSchema,
+  position: pointSchema,
+});
+
 const baseSchema = z.strictObject({
   team: teamSchema,
   /** Where the team's champions spawn and respawn. */
@@ -27,6 +35,7 @@ export const mapSchema = z.strictObject({
   /** Impassable areas, as axis-aligned rectangles. The map edges are impassable too. */
   obstacles: z.array(rectSchema),
   bases: z.array(baseSchema),
+  units: z.array(placedUnitSchema),
 });
 
 export type MapDef = z.infer<typeof mapSchema>;
@@ -51,11 +60,13 @@ export function checkMap(map: MapDef, report: (path: string, message: string) =>
     }
   }
 
-  map.bases.forEach((base, index) => {
-    if (!pointInRect(base.fountain, bounds)) {
-      report(`bases[${index}].fountain`, 'must lie inside the map');
-    } else if (map.obstacles.some((obstacle) => pointInRect(base.fountain, obstacle))) {
-      report(`bases[${index}].fountain`, 'must not lie inside an obstacle');
+  const checkPoint = (point: { x: number; y: number }, path: string): void => {
+    if (!pointInRect(point, bounds)) {
+      report(path, 'must lie inside the map');
+    } else if (map.obstacles.some((obstacle) => pointInRect(point, obstacle))) {
+      report(path, 'must not lie inside an obstacle');
     }
-  });
+  };
+  map.bases.forEach((base, index) => checkPoint(base.fountain, `bases[${index}].fountain`));
+  map.units.forEach((unit, index) => checkPoint(unit.position, `units[${index}].position`));
 }

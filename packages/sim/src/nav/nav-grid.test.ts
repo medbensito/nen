@@ -11,6 +11,7 @@ const map: MapDef = {
   navCellSize: 10,
   obstacles: [{ x: 80, y: 0, width: 40, height: 60 }],
   bases: [],
+  units: [],
 };
 
 describe('buildNavGrid', () => {
