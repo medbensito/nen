@@ -1,0 +1,3 @@
+# Hand-written docs keep their own layout.
+*.md
+pnpm-lock.yaml

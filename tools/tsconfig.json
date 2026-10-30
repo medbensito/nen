@@ -1,0 +1,9 @@
+{
+  // Node-side code: scripts in tools/ and the root config files.
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../*.config.ts", "../packages/*/*.config.ts"]
+}

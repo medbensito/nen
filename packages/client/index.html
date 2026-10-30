@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nen</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #07080c;
+      }
+      #game {
+        width: 100vw;
+        height: 100vh;
+      }
+      #boot-error {
+        margin: 0;
+        padding: 24px;
+        color: #ffb4a8;
+        font:
+          14px/1.5 ui-monospace,
+          Consolas,
+          monospace;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

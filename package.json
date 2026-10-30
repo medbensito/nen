@@ -1,0 +1,37 @@
+{
+  "name": "nen",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @nen/client dev",
+    "build": "pnpm --filter @nen/client build",
+    "typecheck": "tsc -p packages/sim && tsc -p packages/client && tsc -p packages/client/e2e && tsc -p tools",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "validate:data": "tsx tools/validate-data.ts",
+    "bench": "tsx tools/bench.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm validate:data && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@nen/sim": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.19.2",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

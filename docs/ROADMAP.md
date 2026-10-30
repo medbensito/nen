@@ -8,7 +8,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 
 | Jalon | Sujet | Statut |
 |---|---|---|
-| M0 | Scaffolding | À faire |
+| M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | À faire |
 | M2 | Combat de base | À faire |
 | M3 | Nen et capacités | À faire |
@@ -23,17 +23,17 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 - Monorepo pnpm : `packages/sim`, `packages/client`, `data/`, `tools/`.
 - TypeScript strict, ESLint (avec les règles d'isolation de `sim`), Prettier, Vitest, Vite, Playwright.
 - Boucle de simulation à pas fixe (30 ticks/s) avec RNG à graine et hash d'état.
-- Chargeur de données avec schémas zod (premier schéma : `data/rules/`).
+- Chargeur de données avec schémas zod : `data/rules/` (simulation, match), `data/maps/`, `data/locales/`.
 - Client Phaser 4 qui affiche une arène vide, la grille du monde et un compteur FPS.
 - Toutes les commandes listées dans `CLAUDE.md`.
 
 **Critères d'acceptation**
-- [ ] `pnpm install` puis `pnpm dev` ouvre l'arène vide avec le compteur FPS. (manuel)
-- [ ] `pnpm check` passe. (auto)
-- [ ] Un import de `phaser` ou un appel à `Math.random` dans `packages/sim` fait échouer `pnpm lint`. (auto)
-- [ ] Un fichier de données invalide produit une erreur qui nomme le fichier et le chemin du champ. (auto)
-- [ ] Deux simulations avec la même graine et les mêmes commandes ont le même hash d'état après 1 000 ticks. (auto)
-- [ ] `pnpm test:e2e` : la page charge sans erreur console. (auto, hors `pnpm check`)
+- [x] `pnpm install` puis `pnpm dev` ouvre l'arène vide avec le compteur FPS. (manuel — validé par le porteur du projet)
+- [x] `pnpm check` passe. (auto)
+- [x] Un import de `phaser` ou un appel à `Math.random` dans `packages/sim` fait échouer `pnpm lint`. (auto : `tools/lint-rules.test.ts`)
+- [x] Un fichier de données invalide produit une erreur qui nomme le fichier et le chemin du champ. (auto : `packages/sim/src/schema/loader.test.ts`, `tools/validate-data.test.ts` ; l'erreur s'affiche aussi dans le navigateur)
+- [x] Deux simulations avec la même graine et les mêmes commandes ont le même hash d'état après 1 000 ticks. (auto : `packages/sim/test/determinism.test.ts`)
+- [x] `pnpm test:e2e` : la page charge sans erreur console, et la sim tient sa fréquence de ticks. (auto, hors `pnpm check`)
 
 ## M1 — Déplacement et caméra
 

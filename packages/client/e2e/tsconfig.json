@@ -1,0 +1,9 @@
+{
+  // Playwright tests run in Node but also send callbacks into the page.
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

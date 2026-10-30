@@ -28,21 +28,23 @@ Phaser 4 est sorti en avril 2026 et son API de rendu diffère de Phaser 3. Véri
 
 ## Commandes
 
-Prérequis : Node.js 22 LTS ou plus récent (24 recommandé), pnpm 10 (`npm install -g pnpm`), git.
-Ces commandes existent à partir du jalon M0. Si l'une d'elles change, mets à jour cette section dans le même commit.
+Prérequis : Node.js 22.12 ou plus récent (24 LTS recommandé), pnpm 10 (`npm install -g pnpm`), git.
+Une seule fois, pour les tests e2e : `pnpm exec playwright install chromium`.
+Si une commande change, mets à jour cette section dans le même commit.
 
 | Commande | Effet |
 |---|---|
 | `pnpm install` | Installe les dépendances de tout le monorepo |
 | `pnpm dev` | Lance le jeu en dev sur http://localhost:5173 |
 | `pnpm test` | Lance tous les tests une fois |
-| `pnpm test <filtre>` | Lance seulement les fichiers de test dont le chemin contient `<filtre>` (ex. `pnpm test nen`) |
+| `pnpm test <filtre>` | Lance seulement les fichiers de test dont le chemin contient `<filtre>` (ex. `pnpm test loader`) |
 | `pnpm test:watch` | Tests en mode surveillance |
-| `pnpm test:e2e` | Test de fumée Playwright (la page charge, aucune erreur console) |
-| `pnpm typecheck` | Vérification des types |
-| `pnpm lint` | ESLint, y compris les règles d'isolation de `sim` |
+| `pnpm test:e2e` | Tests de fumée Playwright sur le port 5174 : la page charge sans erreur console, la sim tient sa fréquence. Hors `pnpm check`. |
+| `pnpm typecheck` | Vérification des types (sim, client, e2e, tools) |
+| `pnpm lint` | ESLint, y compris les règles d'isolation de `sim`, puis vérification Prettier |
+| `pnpm format` | Reformate le code et les JSON avec Prettier (les `.md` sont exclus) |
 | `pnpm validate:data` | Valide tous les fichiers de `data/` contre leurs schémas |
-| `pnpm bench` | Benchmarks de la simulation |
+| `pnpm bench` | Benchmarks de la simulation (`packages/sim/test/benchmarks.ts`) ; échoue si un p95 dépasse son budget |
 | `pnpm build` | Build de production du client dans `packages/client/dist` |
 | `pnpm check` | `typecheck` + `lint` + `validate:data` + `test`. **Doit passer avant chaque commit.** |
 
@@ -75,14 +77,15 @@ nen/
 │   │   │   ├── commands/     commandes entrantes (Move, Attack, Cast, Stop…)
 │   │   │   ├── systems/      movement, combat, nen, abilities, ai, waves, economy, match
 │   │   │   └── nav/          grille de navigation, A*, lissage de chemin
-│   │   └── test/             scénarios et tests d'intégration (parties complètes)
-│   │       └── fixtures/     données de test inline, indépendantes de data/
+│   │   └── test/             scénarios, parties complètes, benchmarks.ts
+│   │       └── fixtures/     données et systèmes de test, indépendants de data/
 │   └── client/               @nen/client : Phaser 4
 │       ├── src/
-│       │   ├── scenes/
+│       │   ├── scenes/       arena (monde + horloge de la sim), hud (écran)
 │       │   ├── render/       vues synchronisées depuis l'état de la sim
 │       │   ├── input/        souris et clavier → commandes
-│       │   └── ui/           HUD
+│       │   └── ui/           éléments du HUD, clés de texte
+│       ├── e2e/              tests de fumée Playwright
 │       └── public/
 └── tools/                    scripts Node (validation des données, benchmarks)
 ```
