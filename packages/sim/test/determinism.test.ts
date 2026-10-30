@@ -60,7 +60,7 @@ function runGame(seed: number, ticks = 1000): string[] {
   return hashes;
 }
 
-/** A fight with the dummy: chase, projectiles, damage. */
+/** A fight with the dummy: chase, projectiles, damage, deaths and respawns. */
 function runFight(seed: number, ticks = 1500): string[] {
   const sim = createSimulation({ data: fixtureGameData(), seed });
   const championId = sim.state.players[0]?.entityId ?? -1;
@@ -81,7 +81,7 @@ describe('determinism', () => {
     expect(runGame(3)).toEqual(runGame(3));
   });
 
-  it('holds through combat', () => {
+  it('holds through combat, deaths and respawns', () => {
     expect(runFight(4)).toEqual(runFight(4));
   });
 
