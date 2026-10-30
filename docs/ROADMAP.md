@@ -8,7 +8,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 
 | Jalon | Sujet | Statut |
 |---|---|---|
-| M0 | Scaffolding | En revue |
+| M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | À faire |
 | M2 | Combat de base | À faire |
 | M3 | Nen et capacités | À faire |
@@ -28,7 +28,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 - Toutes les commandes listées dans `CLAUDE.md`.
 
 **Critères d'acceptation**
-- [x] `pnpm install` puis `pnpm dev` ouvre l'arène vide avec le compteur FPS. (manuel — vérifié en navigateur headless, à confirmer sur la machine de référence)
+- [x] `pnpm install` puis `pnpm dev` ouvre l'arène vide avec le compteur FPS. (manuel — validé par le porteur du projet)
 - [x] `pnpm check` passe. (auto)
 - [x] Un import de `phaser` ou un appel à `Math.random` dans `packages/sim` fait échouer `pnpm lint`. (auto : `tools/lint-rules.test.ts`)
 - [x] Un fichier de données invalide produit une erreur qui nomme le fichier et le chemin du champ. (auto : `packages/sim/src/schema/loader.test.ts`, `tools/validate-data.test.ts` ; l'erreur s'affiche aussi dans le navigateur)
