@@ -5,6 +5,7 @@ import { loadGameData, type RawDataFiles } from './loader';
 function validFiles(): Record<string, unknown> {
   return {
     'rules/simulation.json': { tickRate: 30, maxStepsPerFrame: 5 },
+    'rules/match.json': { map: 'test-arena' },
     'maps/test-arena.json': {
       id: 'test-arena',
       name: 'map.test-arena.name',
@@ -30,6 +31,7 @@ describe('loadGameData', () => {
   it('loads valid data', () => {
     const data = loadGameData(validFiles());
     expect(data.simulation.tickRate).toBe(30);
+    expect(data.match.map).toBe('test-arena');
     expect(data.maps['test-arena']?.width).toBe(800);
     expect(Object.keys(data.locales).sort()).toEqual(['en', 'fr']);
   });
@@ -92,6 +94,24 @@ describe('loadGameData', () => {
       }),
     );
     expect(issues).toContainEqual(expect.objectContaining({ file: 'locales/' }));
+  });
+
+  it('requires the match rules', () => {
+    const files = validFiles();
+    delete files['rules/match.json'];
+
+    expect(issuesOf(files)).toEqual([
+      { file: 'rules/match.json', path: '(root)', message: 'required file is missing' },
+    ]);
+  });
+
+  it('requires the match map to exist', () => {
+    const files = validFiles();
+    files['rules/match.json'] = { map: 'missing-map' };
+
+    expect(issuesOf(files)).toEqual([
+      expect.objectContaining({ file: 'rules/match.json', path: 'map' }),
+    ]);
   });
 
   it('requires a map id to match its file name', () => {

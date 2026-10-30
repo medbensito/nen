@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { idSchema } from './common';
 
 /** data/rules/simulation.json */
 export const simulationRulesSchema = z.strictObject({
@@ -13,3 +14,11 @@ export const simulationRulesSchema = z.strictObject({
 });
 
 export type SimulationRules = z.infer<typeof simulationRulesSchema>;
+
+/** data/rules/match.json */
+export const matchRulesSchema = z.strictObject({
+  /** Id of the map to play, from data/maps/. */
+  map: idSchema,
+});
+
+export type MatchRules = z.infer<typeof matchRulesSchema>;

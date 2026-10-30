@@ -3,7 +3,12 @@ import type { DeepReadonly } from '../core/types';
 import { DataValidationError, formatIssuePath, ROOT_PATH, type DataIssue } from './errors';
 import { localeSchema, type Locale } from './locale';
 import { mapSchema, type MapDef } from './map';
-import { simulationRulesSchema, type SimulationRules } from './rules';
+import {
+  matchRulesSchema,
+  simulationRulesSchema,
+  type MatchRules,
+  type SimulationRules,
+} from './rules';
 
 /**
  * Raw content of the data/ folder: relative path (forward slashes) → parsed JSON.
@@ -15,15 +20,18 @@ export type RawDataFiles = Readonly<Record<string, unknown>>;
 
 export type GameData = DeepReadonly<{
   simulation: SimulationRules;
+  match: MatchRules;
   maps: Record<string, MapDef>;
   /** Language code (`fr`, `en`) → translations. */
   locales: Record<string, Locale>;
 }>;
 
 const SIMULATION_FILE = 'rules/simulation.json';
+const MATCH_FILE = 'rules/match.json';
+const REQUIRED_FILES = [MATCH_FILE, SIMULATION_FILE];
 const MAP_FILE = /^maps\/([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const LOCALE_FILE = /^locales\/([a-z]{2})\.json$/;
-const EXPECTED_FILES = `${SIMULATION_FILE}, maps/<id>.json, locales/<lang>.json`;
+const EXPECTED_FILES = `${REQUIRED_FILES.join(', ')}, maps/<id>.json, locales/<lang>.json`;
 
 interface LocaleReference {
   readonly file: string;
@@ -43,12 +51,18 @@ export function loadGameData(files: RawDataFiles): GameData {
   const maps: Record<string, MapDef> = {};
   const locales: Record<string, Locale> = {};
   let simulation: SimulationRules | undefined;
+  let match: MatchRules | undefined;
 
   for (const file of Object.keys(files).sort()) {
     const raw = files[file];
 
     if (file === SIMULATION_FILE) {
       simulation = parseFile(simulationRulesSchema, file, raw, issues);
+      continue;
+    }
+
+    if (file === MATCH_FILE) {
+      match = parseFile(matchRulesSchema, file, raw, issues);
       continue;
     }
 
@@ -79,8 +93,18 @@ export function loadGameData(files: RawDataFiles): GameData {
     });
   }
 
-  if (simulation === undefined && !(SIMULATION_FILE in files)) {
-    issues.push({ file: SIMULATION_FILE, path: ROOT_PATH, message: 'required file is missing' });
+  for (const file of REQUIRED_FILES) {
+    if (!(file in files)) {
+      issues.push({ file, path: ROOT_PATH, message: 'required file is missing' });
+    }
+  }
+  // A map file that exists but failed validation already has its own issue.
+  if (match && !(match.map in maps) && !(`maps/${match.map}.json` in files)) {
+    issues.push({
+      file: MATCH_FILE,
+      path: 'map',
+      message: `unknown map "${match.map}" (known: ${Object.keys(maps).sort().join(', ') || 'none'})`,
+    });
   }
   if (!Object.keys(files).some((file) => LOCALE_FILE.test(file))) {
     issues.push({
@@ -93,10 +117,10 @@ export function loadGameData(files: RawDataFiles): GameData {
   checkLocaleConsistency(locales, issues);
   checkLocaleReferences(references, locales, issues);
 
-  if (issues.length > 0 || simulation === undefined) {
+  if (issues.length > 0 || simulation === undefined || match === undefined) {
     throw new DataValidationError(issues);
   }
-  return { simulation, maps, locales };
+  return { simulation, match, maps, locales };
 }
 
 function parseFile<T>(

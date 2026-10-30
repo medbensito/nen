@@ -7,6 +7,7 @@ import { loadGameData, type GameData } from '../../src/schema/loader';
 export function fixtureGameData(): GameData {
   return loadGameData({
     'rules/simulation.json': { tickRate: 30, maxStepsPerFrame: 5 },
+    'rules/match.json': { map: 'test-arena' },
     'maps/test-arena.json': {
       id: 'test-arena',
       name: 'map.test-arena.name',
