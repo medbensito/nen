@@ -1,0 +1,15 @@
+{
+  "id": "ressac-trait",
+  "name": "ability.ressac-trait.name",
+  "description": "ability.ressac-trait.description",
+  "cost": 30,
+  "cooldown": 4,
+  "unlockLevel": 1,
+  "effect": {
+    "type": "skillshot",
+    "damage": 70,
+    "range": 900,
+    "speed": 1600,
+    "radius": 12
+  }
+}

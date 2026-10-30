@@ -14,6 +14,11 @@ export const keyCodeSchema = z
 /** data/input/bindings.json */
 export const inputBindingsSchema = z.strictObject({
   keys: z.strictObject({
+    /** The champion's four abilities, in order. */
+    ability1: keyCodeSchema,
+    ability2: keyCodeSchema,
+    ability3: keyCodeSchema,
+    ability4: keyCodeSchema,
     stop: keyCodeSchema,
     toggleCameraLock: keyCodeSchema,
     centerCamera: keyCodeSchema,
