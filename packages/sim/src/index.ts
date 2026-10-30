@@ -16,6 +16,7 @@ export * from './schema/map';
 export * from './schema/rules';
 export * from './schema/units';
 export * from './state/game-state';
+export * from './state/setup-match';
 export * from './systems';
 export * from './nav/astar';
 export * from './nav/line-of-sight';

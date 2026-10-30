@@ -15,6 +15,7 @@ export function spawnAtStart(count: number): System {
         kind: 'wanderer',
         team: ctx.rng.float() < 0.5 ? 'blue' : 'red',
         position: { x: ctx.rng.range(0, 800), y: ctx.rng.range(0, 600) },
+        radius: 10,
       });
     }
   };
@@ -28,6 +29,7 @@ export function spawnEvery(interval: number): System {
       kind: 'wanderer',
       team: 'neutral',
       position: { x: ctx.rng.range(0, 800), y: ctx.rng.range(0, 600) },
+      radius: 10,
     });
   };
 }

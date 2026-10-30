@@ -35,7 +35,36 @@ function run(seed: number, script: CommandScript, ticks = 1000): string[] {
   return hashes;
 }
 
+/** Same check with the real game systems and move orders across the arena. */
+function runGame(seed: number, ticks = 1000): string[] {
+  const sim = createSimulation({ data: fixtureGameData(), seed });
+  const entityId = sim.state.players[0]?.entityId ?? -1;
+  const targets = [
+    { x: 740, y: 300 },
+    { x: 400, y: 560 },
+    { x: 60, y: 60 },
+    { x: 400, y: 300 },
+  ];
+  const hashes: string[] = [];
+  for (let tick = 0; tick < ticks; tick++) {
+    if (tick % 120 === 0) {
+      sim.enqueue({
+        type: 'move',
+        entityId,
+        target: targets[(tick / 120) % targets.length] ?? { x: 0, y: 0 },
+      });
+    }
+    sim.step();
+    hashes.push(hashState(sim.state));
+  }
+  return hashes;
+}
+
 describe('determinism', () => {
+  it('holds for the game systems and move orders', () => {
+    expect(runGame(3)).toEqual(runGame(3));
+  });
+
   it('gives the same state, tick by tick, for the same seed and commands', () => {
     const first = run(2026, SCRIPT);
     const second = run(2026, SCRIPT);
