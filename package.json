@@ -1,0 +1,16 @@
+{
+  "name": "nen",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p packages/sim",
+    "check": "pnpm typecheck"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}
