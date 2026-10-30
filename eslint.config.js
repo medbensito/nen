@@ -59,6 +59,12 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.strict,
   {
+    rules: {
+      // A leading underscore marks a parameter kept for its signature.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
     files: ['**/*.js', '**/*.mjs', 'tools/**/*.ts', '*.config.ts', 'packages/*/*.config.ts'],
     languageOptions: { globals: globals.node },
   },
