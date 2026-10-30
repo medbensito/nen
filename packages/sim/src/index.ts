@@ -9,6 +9,7 @@ export * from './core/vec2';
 export * from './schema/champion';
 export * from './schema/common';
 export * from './schema/errors';
+export * from './schema/input';
 export * from './schema/loader';
 export * from './schema/locale';
 export * from './schema/map';

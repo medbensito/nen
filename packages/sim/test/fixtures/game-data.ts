@@ -13,6 +13,16 @@ export function fixtureFiles(): FixtureFiles {
   return {
     'rules/simulation.json': { tickRate: 30, maxStepsPerFrame: 5 },
     'rules/match.json': { map: 'test-arena', champion: 'test-champion', team: 'blue' },
+    'input/bindings.json': {
+      keys: { stop: 'KeyS', toggleCameraLock: 'KeyY', centerCamera: 'Space' },
+      moveRepeatInterval: 0.15,
+    },
+    'input/camera.json': {
+      startLocked: true,
+      edgeScrollMargin: 20,
+      edgeScrollSpeed: 1000,
+      zoom: { initial: 1, min: 0.5, max: 2, step: 0.1 },
+    },
     'maps/test-arena.json': {
       id: 'test-arena',
       name: 'map.test-arena.name',

@@ -2,6 +2,13 @@ import type { z } from 'zod';
 import type { DeepReadonly } from '../core/types';
 import { championSchema, compileChampion, type Champion } from './champion';
 import { DataValidationError, formatIssuePath, ROOT_PATH, type DataIssue } from './errors';
+import {
+  cameraSettingsSchema,
+  checkBindings,
+  inputBindingsSchema,
+  type CameraSettings,
+  type InputBindings,
+} from './input';
 import { localeSchema, type Locale } from './locale';
 import { checkMap, mapSchema, type MapDef } from './map';
 import {
@@ -22,6 +29,7 @@ export type RawDataFiles = Readonly<Record<string, unknown>>;
 export type GameData = DeepReadonly<{
   simulation: SimulationRules;
   match: MatchRules;
+  input: { bindings: InputBindings; camera: CameraSettings };
   maps: Record<string, MapDef>;
   champions: Record<string, Champion>;
   /** Language code (`fr`, `en`) → translations. */
@@ -33,7 +41,8 @@ const MAP_FILE = new RegExp(`^maps/(${ID})\\.json$`);
 const CHAMPION_FILE = new RegExp(`^champions/(${ID})\\.json$`);
 const LOCALE_FILE = /^locales\/([a-z]{2})\.json$/;
 const EXPECTED_FILES =
-  'rules/simulation.json, rules/match.json, maps/<id>.json, champions/<id>.json, locales/<lang>.json';
+  'rules/simulation.json, rules/match.json, input/bindings.json, input/camera.json, ' +
+  'maps/<id>.json, champions/<id>.json, locales/<lang>.json';
 
 interface LocaleReference {
   readonly file: string;
@@ -52,11 +61,16 @@ export function loadGameData(files: RawDataFiles): GameData {
 
   const simulation = reader.single('rules/simulation.json', simulationRulesSchema);
   const match = reader.single('rules/match.json', matchRulesSchema);
+  const bindings = reader.single('input/bindings.json', inputBindingsSchema);
+  const camera = reader.single('input/camera.json', cameraSettingsSchema);
   const maps = reader.collection(MAP_FILE, mapSchema, { idMatchesFileName: true });
   const champions = reader.collection(CHAMPION_FILE, championSchema, { idMatchesFileName: true });
   const locales = reader.collection(LOCALE_FILE, localeSchema);
   reader.rejectUnclaimedFiles();
 
+  if (bindings) {
+    checkBindings(bindings, (path, message) => reader.report('input/bindings.json', path, message));
+  }
   for (const { file, value: map } of maps.values()) {
     checkMap(map, (path, message) => reader.report(file, path, message));
     reader.reference(file, 'name', map.name);
@@ -77,12 +91,19 @@ export function loadGameData(files: RawDataFiles): GameData {
     reader.requireEntry('rules/match.json', 'champion', match.champion, champions, 'champions');
   }
 
-  if (reader.issues.length > 0 || simulation === undefined || match === undefined) {
+  if (
+    reader.issues.length > 0 ||
+    simulation === undefined ||
+    match === undefined ||
+    bindings === undefined ||
+    camera === undefined
+  ) {
     throw new DataValidationError(reader.sortedIssues());
   }
   return {
     simulation,
     match,
+    input: { bindings, camera },
     maps: Object.fromEntries([...maps].map(([id, { value }]) => [id, value])),
     champions: Object.fromEntries(
       [...champions].map(([id, { value }]) => [id, compileChampion(value, simulation.tickRate)]),

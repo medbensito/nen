@@ -156,6 +156,42 @@ describe('champions', () => {
   });
 });
 
+describe('input', () => {
+  const keys = { stop: 'KeyS', toggleCameraLock: 'KeyY', centerCamera: 'Space' };
+
+  it('loads key bindings and camera settings', () => {
+    const data = loadGameData(validFiles());
+    expect(data.input.bindings.keys.stop).toBe('KeyS');
+    expect(data.input.camera.startLocked).toBe(true);
+  });
+
+  it('rejects a key that is not a physical key code', () => {
+    expect(issuesOf(withFields('input/bindings.json', { keys: { ...keys, stop: 's' } }))).toEqual([
+      expect.objectContaining({ file: 'input/bindings.json', path: 'keys.stop' }),
+    ]);
+  });
+
+  it('rejects two actions on the same key', () => {
+    expect(
+      issuesOf(withFields('input/bindings.json', { keys: { ...keys, toggleCameraLock: 'KeyS' } })),
+    ).toEqual([
+      {
+        file: 'input/bindings.json',
+        path: 'keys.toggleCameraLock',
+        message: 'uses the same key as "stop" (KeyS)',
+      },
+    ]);
+  });
+
+  it('requires the initial zoom to sit between its bounds', () => {
+    expect(
+      issuesOf(
+        withFields('input/camera.json', { zoom: { initial: 3, min: 0.5, max: 2, step: 0.1 } }),
+      ),
+    ).toEqual([expect.objectContaining({ file: 'input/camera.json', path: 'zoom.initial' })]);
+  });
+});
+
 describe('map rules', () => {
   const blueBase = { team: 'blue', fountain: { x: 60, y: 300 }, fountainRadius: 40 };
 
