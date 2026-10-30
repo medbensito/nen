@@ -10,7 +10,7 @@ Légende des critères : **(auto)** = test automatisé qui tourne dans `pnpm che
 |---|---|---|
 | M0 | Scaffolding | Fait (tag `m0`) |
 | M1 | Déplacement et caméra | Fait (tag `m1`) |
-| M2 | Combat de base | À faire |
+| M2 | Combat de base | En cours |
 | M3 | Nen et capacités | À faire |
 | M4 | Sbires, tours, or et niveaux | À faire |
 | M5 | Boucle de partie complète | À faire |
