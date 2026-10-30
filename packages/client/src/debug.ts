@@ -1,4 +1,5 @@
 import { hashState, LOCAL_PLAYER_ID, type Simulation } from '@nen/sim';
+import type { CameraStatus } from './render/camera-rig';
 
 /** Read-only probes for the browser console and the smoke tests. Dev builds only. */
 export interface NenDebug {
@@ -6,6 +7,7 @@ export interface NenDebug {
   readonly hash: () => string;
   /** Position of the local player's champion and whether it is walking. */
   readonly champion: () => { x: number; y: number; moving: boolean } | null;
+  readonly cameraLocked: () => boolean;
 }
 
 declare global {
@@ -14,7 +16,7 @@ declare global {
   }
 }
 
-export function installDebugHook(sim: Simulation): void {
+export function installDebugHook(sim: Simulation, cameraStatus: Readonly<CameraStatus>): void {
   window.__NEN_DEBUG__ = {
     tick: () => sim.state.tick,
     hash: () => hashState(sim.state),
@@ -28,5 +30,6 @@ export function installDebugHook(sim: Simulation): void {
         moving: (entity.movement?.path.length ?? 0) > 0,
       };
     },
+    cameraLocked: () => cameraStatus.locked,
   };
 }

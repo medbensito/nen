@@ -1,6 +1,8 @@
 {
   "app.title": "nen",
   "champion.ressac.name": "Ressac",
+  "hud.camera.free": "Caméra : libre",
+  "hud.camera.locked": "Caméra : verrouillée",
   "hud.fps": "FPS : {value}",
   "map.lane.name": "Lane d'entraînement"
 }

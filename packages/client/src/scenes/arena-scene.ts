@@ -12,6 +12,7 @@ import {
 import * as Phaser from 'phaser';
 import { createKeyMap } from '../input/key-bindings';
 import { PlayerInput } from '../input/player-input';
+import { CameraRig, type CameraStatus } from '../render/camera-rig';
 import { ClickMarkers } from '../render/click-markers';
 import { createMapView } from '../render/map-view';
 import { UnitViews } from '../render/unit-views';
@@ -20,6 +21,8 @@ import { THEME } from '../theme';
 export interface ArenaSceneDeps {
   readonly sim: Simulation;
   readonly map: DeepReadonly<MapDef>;
+  /** Shared with the HUD, which displays it. */
+  readonly cameraStatus: CameraStatus;
 }
 
 /**
@@ -31,6 +34,7 @@ export class ArenaScene extends Phaser.Scene {
   private readonly clock: FixedStepClock;
   private readonly championId: EntityId;
   private views: UnitViews | undefined;
+  private rig: CameraRig | undefined;
   private playerInput: PlayerInput | undefined;
 
   constructor(deps: ArenaSceneDeps) {
@@ -44,15 +48,17 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   create(): void {
-    const { sim, map } = this.deps;
-    const { bindings } = sim.data.input;
+    const { sim, map, cameraStatus } = this.deps;
+    const { bindings, camera } = sim.data.input;
 
     createMapView(this, map);
     this.cameras.main.setBackgroundColor(THEME.void);
 
     const views = new UnitViews(this, { showPaths: import.meta.env.DEV });
+    const rig = new CameraRig(this.cameras.main, camera, map, cameraStatus);
     const markers = new ClickMarkers(this);
     this.views = views;
+    this.rig = rig;
 
     this.playerInput = new PlayerInput(
       this,
@@ -64,14 +70,21 @@ export class ArenaScene extends Phaser.Scene {
       {
         onCommand: (command) => sim.enqueue(command),
         onMoveClick: (target) => markers.show(target),
-        // Camera actions arrive with the camera rig.
-        onKeyAction: () => undefined,
+        onKeyAction: (action, pressed) => {
+          if (action === 'toggleCameraLock' && pressed) rig.toggleLock();
+          if (action === 'centerCamera') rig.setCentering(pressed);
+        },
       },
+    );
+    this.input.on(
+      Phaser.Input.Events.POINTER_WHEEL,
+      (_pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) =>
+        rig.zoomBy(dy),
     );
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
 
     views.render(sim.state, 0);
-    this.followChampion();
+    rig.snapTo(this.focus());
   }
 
   override update(): void {
@@ -88,12 +101,7 @@ export class ArenaScene extends Phaser.Scene {
       sim.step();
     }
     this.views?.render(sim.state, alpha);
-    this.followChampion();
-  }
-
-  private followChampion(): void {
-    const focus = this.focus();
-    this.cameras.main.centerOn(focus.x, focus.y);
+    this.rig?.update(this.focus(), this.pointerOnScreen(), elapsedMs / 1000);
   }
 
   /** Where the camera looks when it follows: the champion as drawn this frame. */
@@ -104,6 +112,12 @@ export class ArenaScene extends Phaser.Scene {
       (candidate) => candidate.id === this.championId,
     );
     return entity?.position ?? { x: this.deps.map.width / 2, y: this.deps.map.height / 2 };
+  }
+
+  private pointerOnScreen(): Vec2 | null {
+    if (!this.game.input.isOver) return null;
+    const pointer = this.input.activePointer;
+    return { x: pointer.x, y: pointer.y };
   }
 
   private handleResize(gameSize: Phaser.Structs.Size): void {
